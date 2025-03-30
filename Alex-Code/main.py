@@ -4,6 +4,8 @@ import pandas as pd
 import os
 from plotter import Plotter
 
+
+
 data = None # global variable
 
 def main():
