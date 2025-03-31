@@ -8,7 +8,7 @@ class CSVPlotterApp:
     def __init__(self, root):
         self.root = root
         self.root.title("CSV Plotter")
-        self.root.geometry("1000x600")
+        self.root.geometry("1000x650")
         self.root.configure(bg="#e6e6fa")
 
         self.df = None
@@ -19,6 +19,7 @@ class CSVPlotterApp:
         self.create_widgets()
 
     def create_widgets(self):
+
         # Title label
         label = tk.Label(self.root, text="CSV Plotter", font=("Helvetica", 18, "bold"), bg="#e6e6fa", fg="black")
         label.pack(pady=(30, 10))
@@ -41,24 +42,31 @@ class CSVPlotterApp:
         content_frame = tk.Frame(self.root, bg="#e6e6fa")
         content_frame.pack(padx=140, pady=(10, 0), anchor="nw")
 
-        # Output Box
+        # Output Frames for variables
         output_frame = tk.Frame(content_frame, bg="#e6e6fa")
-        output_frame.pack(side="left", fill="both", expand=True)
+        output_frame.pack(side="left", fill="y")
 
-        yscroll = tk.Scrollbar(output_frame, orient="vertical")
-        yscroll.pack(side="right", fill="y")
-        xscroll = tk.Scrollbar(output_frame, orient="horizontal")
-        xscroll.pack(side="bottom", fill="x")
+        # Numerical Variables Frame
+        self.num_frame = tk.LabelFrame(output_frame, text="Numerical Variables", font=("Arial", 12, "bold"), bg="#e6e6fa", bd=0, highlightthickness=0)
+        self.num_frame.pack(fill="both", expand=True, pady=(0, 10))
+        self.num_listbox = tk.Listbox(self.num_frame, width=30, height=10, font=("Arial", 12))
+        self.num_listbox.pack(side="left", fill="both", expand=True)
+        num_scroll = tk.Scrollbar(self.num_frame, orient="vertical", command=self.num_listbox.yview)
+        num_scroll.pack(side="right", fill="y")
+        self.num_listbox.config(yscrollcommand=num_scroll.set)
 
-        self.output_box = tk.Text(output_frame, width=30, height=20, font=("Arial", 12),
-                                  yscrollcommand=yscroll.set, xscrollcommand=xscroll.set, wrap="none")
-        self.output_box.pack(side="left", fill="both", expand=True)
-        yscroll.config(command=self.output_box.yview)
-        xscroll.config(command=self.output_box.xview)
+        # Categorical Variables Frame
+        self.cat_frame = tk.LabelFrame(output_frame, text="Categorical Variables", font=("Arial", 12, "bold"), bg="#e6e6fa", bd=0, highlightthickness=0)
+        self.cat_frame.pack(fill="both", expand=True)
+        self.cat_listbox = tk.Listbox(self.cat_frame, width=30, height=10, font=("Arial", 12))
+        self.cat_listbox.pack(side="left", fill="both", expand=True)
+        cat_scroll = tk.Scrollbar(self.cat_frame, orient="vertical", command=self.cat_listbox.yview)
+        cat_scroll.pack(side="right", fill="y")
+        self.cat_listbox.config(yscrollcommand=cat_scroll.set)
 
         # Right-side controls
         controls_frame = tk.Frame(content_frame, bg="#e6e6fa")
-        controls_frame.pack(side="left", padx=(20, 0), anchor="n")
+        controls_frame.pack(side="left", padx=(20, 0), anchor="center")
 
         # Plot type dropdown
         plot_type_label = tk.Label(controls_frame, text="Select plot type:", font=("Arial", 12), bg="#e6e6fa")
@@ -145,17 +153,18 @@ class CSVPlotterApp:
                 
                 
                 # separation and display of numerical vs string variables
-                self.output_box.delete("1.0", tk.END)
-                self.output_box.insert(tk.END, "\n  Numerical Variables:\n\n")
-                for col in self.columns:
-                    if pd.api.types.is_numeric_dtype(self.df[col]):
-                        self.output_box.insert(tk.END, f"  -  {col}\n")
 
-                self.output_box.insert(tk.END, "\n  Categorical Variables:\n\n")
-                for col in self.columns:
-                    if pd.api.types.is_string_dtype(self.df[col]) or pd.api.types.is_object_dtype(self.df[col]):
-                        self.output_box.insert(tk.END, f"  -  {col}\n")
+                self.num_listbox.delete(0, tk.END) # clear boxes if new file is selected
+                self.cat_listbox.delete(0, tk.END)
 
+                # create lists to store numerical vs categorical variable names
+                self.numeric_columns = [col for col in self.columns if pd.api.types.is_numeric_dtype(self.df[col])]
+                self.categorical_columns = [col for col in self.columns if pd.api.types.is_string_dtype(self.df[col]) or pd.api.types.is_object_dtype(self.df[col])]
+
+                for col in self.numeric_columns:
+                    self.num_listbox.insert(tk.END, col)
+                for col in self.categorical_columns:
+                    self.cat_listbox.insert(tk.END, col)
             except Exception as e:
                 self.status_label.config(text="Error reading file, please check CSV", fg="red")
                 self.output_box.delete("1.0", tk.END)
