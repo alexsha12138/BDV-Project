@@ -78,14 +78,14 @@ class CSVPlotterApp:
         self.plot_type_combo.bind("<<ComboboxSelected>>", self.update_column_selection)
 
         # First column dropdown
-        column1_label = tk.Label(controls_frame, text="Select first column:", font=("Arial", 12), bg="#f0f0f0")
+        column1_label = tk.Label(controls_frame, text="Select first variable:", font=("Arial", 12), bg="#f0f0f0")
         column1_label.grid(row=1, column=0, sticky="w")
 
         self.column1_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12))
         self.column1_combo.grid(row=1, column=1, pady=5)
 
         # Second column dropdown
-        column2_label = tk.Label(controls_frame, text="Select second column:", font=("Arial", 12), bg="#f0f0f0")
+        column2_label = tk.Label(controls_frame, text="Select second variable:", font=("Arial", 12), bg="#f0f0f0")
         column2_label.grid(row=2, column=0, sticky="w")
 
         self.column2_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12))
@@ -139,6 +139,10 @@ class CSVPlotterApp:
 
         self.analyze_button = tk.Button(button_row, text="Analyze", font=("Arial", 12), state="disabled", command=self.analyze_data, width = 10)
         self.analyze_button.pack(side="left", padx=30)
+
+        # Advanced setting button
+        self.advanced_button = tk.Button(button_row, text="Advanced..", font=("Arial", 12), state="disabled", width=10, command=self.advanced_setting)
+        self.advanced_button.pack (side = "left", padx=30)
 
     def csv_upload(self):
         file_path = filedialog.askopenfilename(title="Select CSV File", filetypes=[("CSV Files", "*.csv")])
@@ -229,6 +233,7 @@ class CSVPlotterApp:
         # Enable plot button if everything looks good
         self.plot_button.config(state="normal")
         self.analyze_button.config(state="disabled")
+        self.advanced_button.config(state="normal")
 
 
     def plot_graph(self):
@@ -271,3 +276,20 @@ class CSVPlotterApp:
                 self.plotter.perform_stat_test(self.df, col1, col2)
             else:
                 messagebox.showinfo("Analysis", "Statistical analysis is not applicable for this plot type.")
+
+    def advanced_setting(self):
+        adv_window = tk.Toplevel(self.root)
+        adv_window.title("Advanced Settings")
+        adv_window.configure(bg="#f0f0f0")
+
+        label=tk.Label(adv_window, text="       Advanced Settings       ", font=("Arial", 16), bg="#f0f0f0")
+        label.pack(pady=0)
+
+        if self.plot_type_combo.get() == "Line":
+            Line_label = tk.Label(adv_window, text="Line Graph", font=("Arial", 12), bg="#f0f0f0")
+            Line_label.pack(pady=0)
+
+            # marker
+            marker_var = tk.BooleanVar()
+            marker_checkbox = tk.Checkbutton(adv_window, text = "Show Marker", variable = marker_var, font=("Arial", 12))
+            marker_checkbox.pack(pady=10)
