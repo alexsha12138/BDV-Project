@@ -68,28 +68,32 @@ class CSVPlotterApp:
         controls_frame = tk.Frame(content_frame, bg="#f0f0f0")
         controls_frame.pack(side="left", padx=(20, 0), anchor="center")
 
-        # Plot type dropdown
-        plot_type_label = tk.Label(controls_frame, text="Select plot type:", font=("Arial", 12), bg="#f0f0f0")
-        plot_type_label.grid(row=0, column=0, sticky="w")
-
-        self.plot_type_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12),
-                                            values=["Bar", "Scatter", "Line", "Pie Chart", "Heat Map", "Violin Plot", "Box Plot", "Histogram"])
-        self.plot_type_combo.grid(row=0, column=1, pady=5)
-        self.plot_type_combo.bind("<<ComboboxSelected>>", self.update_column_selection)
 
         # First column dropdown
         column1_label = tk.Label(controls_frame, text="Select first variable:", font=("Arial", 12), bg="#f0f0f0")
-        column1_label.grid(row=1, column=0, sticky="w")
+        column1_label.grid(row=0, column=0, sticky="w")
 
         self.column1_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12))
-        self.column1_combo.grid(row=1, column=1, pady=5)
+        self.column1_combo.grid(row=0, column=1, pady=5)
+        self.column1_combo.bind("<<ComboboxSelected>>", self.update_plot_selection) 
 
         # Second column dropdown
         column2_label = tk.Label(controls_frame, text="Select second variable:", font=("Arial", 12), bg="#f0f0f0")
-        column2_label.grid(row=2, column=0, sticky="w")
+        column2_label.grid(row=1, column=0, sticky="w")
 
         self.column2_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12))
-        self.column2_combo.grid(row=2, column=1, pady=5)
+        self.column2_combo.grid(row=1, column=1, pady=5)
+        self.column2_combo.bind("<<ComboboxSelected>>", self.update_plot_selection) 
+
+        # Plot type dropdown
+        plot_type_label = tk.Label(controls_frame, text="Select plot type:", font=("Arial", 12), bg="#f0f0f0")
+        plot_type_label.grid(row=2, column=0, sticky="w")
+
+        self.plot_type_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12),
+                                            values=["Bar", "Scatter", "Line", "Pie Chart", "Heat Map", "Violin Plot", "Box Plot", "Histogram"])
+        self.plot_type_combo.grid(row=2, column=1, pady=5)
+        self.plot_type_combo.bind("<<ComboboxSelected>>", self.plot_type_selected)
+
 
         # Resolution entries
         res_label = tk.Label(controls_frame, text="Resolution:", font=("Arial", 12), bg="#f0f0f0")
@@ -170,11 +174,13 @@ class CSVPlotterApp:
                 self.column1_combo.set("")
                 self.column2_combo.set("")
 
-                self.column1_combo.config(state="disabled")
-                self.column2_combo.config(state="disabled")
+                self.column1_combo.config(state="readonly")
+                self.column2_combo.config(state="readonly")
+                self.plot_type_combo.config(state="disabled")
 
-                self.column1_combo["values"]=[]
-                self.column2_combo["values"]=[]
+                values = [""] +self.numeric_columns + self.categorical_columns
+                self.column1_combo['values'] = values
+                self.column2_combo['values'] = values
 
                 self.plot_button.config(state="disabled")
                 self.analyze_button.config(state="disabled")
@@ -189,51 +195,6 @@ class CSVPlotterApp:
                 self.output_box.insert(tk.END, str(e))
         else:
             self.status_label.config(text="Please upload a CSV file", fg="black")
-
-    def update_column_selection(self, event):
-        plot_type = self.plot_type_combo.get()
-
-        self.column1_combo.set("") # clear previous dataset's variables
-        self.column2_combo.set("")
-
-        
-        # Reset dropdown values and state
-        self.column1_combo.config(state="normal")
-        self.column2_combo.config(state="normal")
-
-        if plot_type == "Bar":
-            # Both columns can be either numerical or categorical
-            values = self.numeric_columns + self.categorical_columns
-            self.column1_combo['values'] = values
-            self.column2_combo['values'] = values
-
-        elif plot_type in ["Scatter", "Line"]:
-            # Both must be numerical
-            self.column1_combo['values'] = self.numeric_columns
-            self.column2_combo['values'] = self.numeric_columns
-
-        elif plot_type == "Pie Chart":
-            # Only first column, categorical
-            self.column1_combo['values'] = self.categorical_columns
-            self.column2_combo.config(state="disabled")
-            self.column2_combo['values'] = []
-
-        elif plot_type in ["Violin Plot", "Box Plot", "Histogram"]:
-            # First = categorical, Second = numerical
-            self.column1_combo['values'] = self.categorical_columns
-            self.column2_combo['values'] = self.numeric_columns
-
-        elif plot_type == "Heat Map":
-            # No column selection needed
-            self.column1_combo.config(state="disabled")
-            self.column2_combo.config(state="disabled")
-            self.column1_combo['values'] = []
-            self.column2_combo['values'] = []
-
-        # Enable plot button if everything looks good
-        self.plot_button.config(state="normal")
-        self.analyze_button.config(state="disabled")
-        self.advanced_button.config(state="normal")
 
 
     def plot_graph(self):
@@ -285,6 +246,9 @@ class CSVPlotterApp:
         label=tk.Label(adv_window, text="       Advanced Settings       ", font=("Arial", 16), bg="#f0f0f0")
         label.pack(pady=0)
 
+        col1 = self.column1_combo.get()
+        col2 = self.column2_combo.get()
+
         if self.plot_type_combo.get() == "Line":
             Line_label = tk.Label(adv_window, text="Line Graph", font=("Arial", 12), bg="#f0f0f0")
             Line_label.pack(pady=0)
@@ -293,3 +257,88 @@ class CSVPlotterApp:
             marker_var = tk.BooleanVar()
             marker_checkbox = tk.Checkbutton(adv_window, text = "Show Marker", variable = marker_var, font=("Arial", 12))
             marker_checkbox.pack(pady=10)
+
+        # advanced menu for bar plot with 2 numerical variables
+        elif self.plot_type_combo.get() == "Bar" and col1 in self.numeric_columns and col2 in self.numeric_columns:
+            Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0")
+            Line_label.pack(pady=0)
+
+            # check box for 1 sample t-test
+            t1_marker_var = tk.BooleanVar(value=self.plotter.t1_bool)
+            t1_marker_checkbox = tk.Checkbutton(adv_window, text = "Plot 1 sample t-test", variable = t1_marker_var, font=("Arial", 12))
+            t1_marker_checkbox.pack(pady=10)
+
+            # reference values for 1 sample t-test
+            t1_col1_ref_lab = tk.Label(adv_window, text = "Variable 1 reference value:",font=("Arial", 12), bg="#f0f0f0")
+            t1_col1_ref_lab.pack(pady=0)
+            t1_col1_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10)
+            t1_col1_ref_entry.pack(pady=10)
+            t1_col1_ref_entry.insert(0, str(self.plotter.t1_ref1))
+            
+            t1_col2_ref_lab = tk.Label(adv_window, text = "Variable 2 reference value:",font=("Arial", 12), bg="#f0f0f0")
+            t1_col2_ref_lab.pack(pady=0)
+            t1_col2_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10)
+            t1_col2_ref_entry.pack(pady=10)
+            t1_col2_ref_entry.insert(0, str(self.plotter.t1_ref2))
+
+            # check box for 2 sample t-test
+            t2_marker_var = tk.BooleanVar(value=self.plotter.t2_bool)
+            t2_marker_checkbox = tk.Checkbutton(adv_window, text = "Plot 2 sample t-test", variable = t2_marker_var, font=("Arial", 12))
+            t2_marker_checkbox.pack(pady=10)
+
+            def save_advanced_settings():
+                self.plotter.t1_bool = t1_marker_var.get()
+                self.plotter.t2_bool = t2_marker_var.get()
+
+                # ensures entries are numbers, or else default to 0
+                try:
+                    self.plotter.t1_ref1 = float(t1_col1_ref_entry.get())
+                except ValueError:
+                    self.plotter.t1_ref1 = 0
+                try:
+                    self.plotter.t1_ref2 = float(t1_col2_ref_entry.get())
+                except ValueError:
+                    self.plotter.t1_ref2 = 0
+                messagebox.showinfo("Settings Saved", "Advanced settings saved successfully!")
+
+            save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_advanced_settings)
+            save_button.pack(pady=(20, 10))
+
+
+
+    def update_plot_selection(self, event):
+        col1 = self.column1_combo.get()
+        col2 = self.column2_combo.get()
+        if col1:
+            self.plot_type_combo.config(state="readonly")
+
+            # Update plot type options based on new Column 1
+            self.plot_type_combo.set("")
+            
+            if col1 in self.numeric_columns and col2 =="":
+                self.plot_type_combo["values"] = [""]
+            elif col1 in self.numeric_columns and col2 in self.categorical_columns:
+                self.plot_type_combo["values"] = [""]
+            elif col1 in self.categorical_columns and col2 in self.numeric_columns:
+                self.plot_type_combo["values"] = ["Bar", "Violin Plot", "Box Plot"]
+            elif col1 in self.numeric_columns and col2 in self.numeric_columns:
+                self.plot_type_combo["values"] = ["Scatter", "Line", "Histogram", "Bar", "Violin Plot", "Box Plot"]
+            elif col1 in self.categorical_columns and col2 == "":
+                self.plot_type_combo["values"] = ["Pie Chart"]
+            elif col1 in self.categorical_columns and col2 in self.categorical_columns:
+                self.plot_type_combo["values"] = ["Heat Map"]
+
+    def plot_type_selected(self, event):
+        plot_type = self.plot_type_combo.get()
+        col1 = self.column1_combo.get()
+        col2 = self.column2_combo.get()
+
+        # Only enable if a plot type is selected
+        if plot_type != "":
+            self.plot_button.config(state="normal")
+            self.advanced_button.config(state="normal")
+            self.analyze_button.config(state="normal")
+
+        else:
+            self.plot_button.config(state="disabled")
+            self.analyze_button.config(state="disabled")
