@@ -1,0 +1,30 @@
+import matplotlib.pyplot as plt
+import seaborn as sns
+import scipy.stats as stats
+import pandas as pd
+from tkinter import messagebox
+
+
+
+def plot_box(self, df, col1, col2):
+    sns.boxplot(x=df[col1], y=df[col2])
+
+    summary = df.groupby(col1)[col2].describe(percentiles=[0.25, 0.5, 0.75])
+
+    output = "Box Plot Summary:\n"
+    for group, stats_row in summary.iterrows():
+        q1 = stats_row['25%']
+        q3 = stats_row['75%']
+        iqr = q3 - q1
+
+        output += (
+            f"\nCategory: {group}\n" 
+            f"  Min:     {stats_row['min']:.2f}\n"
+            f"  Q1:      {q1:.2f}\n"
+            f"  Median:  {stats_row['50%']:.2f}\n"
+            f"  Q3:      {q3:.2f}\n"
+            f"  Max:     {stats_row['max']:.2f}\n"
+            f"  IQR:     {iqr:.2f}\n"
+        )
+
+    print(output)
