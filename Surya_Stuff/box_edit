@@ -5,7 +5,6 @@ import pandas as pd
 from tkinter import messagebox
 
 
-
 def plot_box(self, df, col1, col2):
     sns.boxplot(x=df[col1], y=df[col2])
 
@@ -19,12 +18,12 @@ def plot_box(self, df, col1, col2):
 
         output += (
             f"\nCategory: {group}\n" 
-            f"  Min:     {stats_row['min']:.2f}\n"
-            f"  Q1:      {q1:.2f}\n"
-            f"  Median:  {stats_row['50%']:.2f}\n"
-            f"  Q3:      {q3:.2f}\n"
-            f"  Max:     {stats_row['max']:.2f}\n"
-            f"  IQR:     {iqr:.2f}\n"
+            f"  Min:     {stats_row['min']}\n"
+            f"  Q1:      {q1}\n"
+            f"  Median:  {stats_row['50%']}\n"
+            f"  Q3:      {q3}\n"
+            f"  Max:     {stats_row['max']}\n"
+            f"  IQR:     {iqr}\n"
         )
 
     print(output)
