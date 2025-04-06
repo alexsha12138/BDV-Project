@@ -303,6 +303,11 @@ class CSVPlotterApp:
 
             save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_advanced_settings)
             save_button.pack(pady=(20, 10))
+        
+        #options for scatterplot
+        elif self.plot_type_combo.get() == "Scatter":
+            Line_label = tk.Label(adv_window, text="Scatter Plot", font=("Arial", 12), bg="#f0f0f0")
+            Line_label.pack(pady=0)
 
 
 
