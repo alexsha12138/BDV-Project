@@ -1,0 +1,39 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# This function creates a violin plot for up to 3 catagorical columns
+def plot_violin_chart_from_columns(csv_path, y_columns, title="", x_label="", y_label=""):
+   
+    # Load the CSV
+    df = pd.read_csv(csv_path)
+
+    # Validate columns
+    for col in y_columns:
+        if col not in df.columns:
+            raise ValueError(f"{col} is not a column in the CSV file.")
+
+    # Melt the data to long-form for seaborn
+    df_melted = df[y_columns].melt(var_name="Group", value_name="Value")
+
+    # Plot
+    plt.figure(figsize=(10, 6))
+    sns.violinplot(data=df_melted, x="Group", y="Value", inner="box", palette="Set2")
+
+    # Customize
+    plt.title(title)
+    plt.xlabel(x_label if x_label else "Group")
+    plt.ylabel(y_label if y_label else "Value")
+    plt.tight_layout()
+    plt.show()
+
+
+
+# Here is an example of how to call the function: 
+# plot_violin_chart_from_columns(
+   # csv_path="COVID-19_CBC_Data.csv",
+   # y_columns=["Neutrophils Count", "Lymphocyte Count", "Platelet Count"],
+   # title="Blood counts",
+   # x_label="Cells",
+   # y_label="Counts"
+#)

@@ -1,0 +1,60 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+import numpy as np
+
+def plot_histogram_with_normal_curve(csv_path, y_columns, title="", x_label="", y_label="", bins=20):
+    """
+    Plots a histogram with a normal distribution curve overlay for specified columns in a CSV file.
+
+    Parameters:
+    - csv_path: str, path to the CSV file
+    - y_columns: list of column names to plot (2 or 3 columns supported)
+    - title: str, plot title
+    - x_label: str, x-axis label
+    - y_label: str, y-axis label
+    - bins: int, number of bins to use for the histogram (default is 20)
+    """
+    # Load the CSV
+    df = pd.read_csv(csv_path)
+
+    # Validate the y_columns
+    for col in y_columns:
+        if col not in df.columns:
+            raise ValueError(f"{col} is not a column in the CSV file.")
+
+    # Set the figure size
+    plt.figure(figsize=(10, 6))
+
+    # Plot a histogram for each specified column
+    for col in y_columns:
+        # Plot histogram
+        sns.histplot(df[col], kde=False, bins=bins, label=col, color="skyblue", stat="density", alpha=1)
+        
+        # Fit a normal distribution to the data and plot the curve
+        mu, std = norm.fit(df[col])
+        xmin, xmax = plt.xlim()  # Get the x-axis limits
+        x = np.linspace(xmin, xmax, 100)
+        p = norm.pdf(x, mu, std)  # Compute the normal PDF
+        plt.plot(x, p, 'k', linewidth=2, label=f"Normal fit for {col}")
+
+    # Add title and labels
+    plt.title(title)
+    plt.xlabel(x_label if x_label else "Value")
+    plt.ylabel(y_label if y_label else "Density")
+
+    # Layout and display
+    plt.tight_layout()
+    plt.show()  # Display the plot
+
+
+
+# Here is an example of how to call the function: 
+# plot_histogram_with_normal_curve(
+   # csv_path="COVID-19_CBC_Data.csv",
+   # y_columns=["Neutrophils Count", "Lymphocyte Count", "Platelet Count"],
+   # title="Blood counts",
+   # x_label="Cells",
+   # y_label="Counts"
+#)
