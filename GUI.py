@@ -314,6 +314,16 @@ class CSVPlotterApp:
                             )
             save_button.pack(pady=(20, 10))
 
+
+        #options for scatterplot
+        elif self.plot_type_combo.get() == "Scatter":
+            Line_label = tk.Label(adv_window, text="Scatter Plot", font=("Arial", 12), bg="#f0f0f0")
+            Line_label.pack(pady=0)
+
+            best_fit_var = tk.BooleanVar(value=True) 
+            best_fit_checkbox = tk.Checkbutton(adv_window, text="Show Line of Best Fit", variable=best_fit_var, font=("Arial", 12))
+            best_fit_checkbox.pack(pady=10)
+=======
         # advanced menu for bar plot with 2 numerical variables
         elif self.plot_type_combo.get() == "Bar" and col1 in self.categorical_columns and col2 in self.numeric_columns:
             Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0")
@@ -390,7 +400,14 @@ class CSVPlotterApp:
         messagebox.showinfo("Settings Saved", confirmation_text)
 
 
+main
 
+            def save_scatter_settings():
+                self.plotter.show_best_fit = best_fit_var.get()
+                messagebox.showinfo("Settings Saved", "Scatter plot settings saved successfully!")
+
+            save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_scatter_settings)
+            save_button.pack(pady=(20, 10))
 
     def update_plot_selection(self, event):
         col1 = self.column1_combo.get()
