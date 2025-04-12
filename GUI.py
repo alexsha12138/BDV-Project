@@ -301,8 +301,19 @@ class CSVPlotterApp:
                     self.plotter.t1_ref2 = 0
                 messagebox.showinfo("Settings Saved", "Advanced settings saved successfully!")
 
-            save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_advanced_settings)
+            save_button = tk.Button(
+                                    adv_window,
+                                    text="Save",
+                                    font=("Arial", 12),
+                                    command=lambda: self.save_advanced_settings({
+                                        't1_bool': (t1_marker_var, bool),
+                                    't2_bool': (t2_marker_var, bool),
+                                    't1_ref1': (t1_col1_ref_entry, float),
+                                    't1_ref2': (t1_col2_ref_entry, float),
+                                })
+                            )
             save_button.pack(pady=(20, 10))
+
 
         #options for scatterplot
         elif self.plot_type_combo.get() == "Scatter":
@@ -312,6 +323,84 @@ class CSVPlotterApp:
             best_fit_var = tk.BooleanVar(value=True) 
             best_fit_checkbox = tk.Checkbutton(adv_window, text="Show Line of Best Fit", variable=best_fit_var, font=("Arial", 12))
             best_fit_checkbox.pack(pady=10)
+=======
+        # advanced menu for bar plot with 2 numerical variables
+        elif self.plot_type_combo.get() == "Bar" and col1 in self.categorical_columns and col2 in self.numeric_columns:
+            Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0")
+            Line_label.pack(pady=0)
+
+            # Entry box for input category names
+            input_cat_label = tk.Label(adv_window, text = "Input Group (separated by \",\"): ")
+            input_cat_label.pack(pady=10)
+            input_cat_entry = tk.Entry(adv_window, font = ("Arial", 12), width=20)
+            input_cat_entry.pack(pady=10)
+            input_cat_entry.insert(0, self.plotter.input_cat)
+
+            # Checkbox for Anova
+            anova_var = tk.BooleanVar(value=self.plotter.t1_bool)
+            anova_checkbox = tk.Checkbutton(adv_window, text = "Perform ANOVA", variable = anova_var, font=("Arial", 12))
+            anova_checkbox.pack(pady=10)
+            
+
+            save_button = tk.Button(
+                                    adv_window,
+                                    text="Save",
+                                    font=("Arial", 12),
+                                    command=lambda: self.save_advanced_settings({
+                                        'input_cat': (input_cat_entry, str),
+                                        'anova': (anova_var, bool)
+                                    })
+                                )
+
+            save_button.pack(pady=(20, 10))
+        
+        elif self.plot_type_combo.get() == "Pie Chart":
+            Pie_label = tk.Label(adv_window, text="Pie Chart", font=("Arial", 12), bg="#f0f0f0")
+            Pie_label.pack(pady=0)
+
+            # Display Option Dropdown
+            display_label = tk.Label(adv_window, text="Display beside pie sections:", font=("Arial", 12), bg="#f0f0f0")
+            display_label.pack(pady=(10, 0))
+
+            display_var = tk.StringVar(value=self.plotter.pie_display_option if hasattr(self.plotter, "pie_display_option") else "count")
+            display_dropdown = ttk.Combobox(adv_window, textvariable=display_var, font=("Arial", 12), state="readonly")
+            display_dropdown['values'] = ["count", "percentage", "both", "neither"]
+            display_dropdown.pack(pady=5)
+
+            # Labels Toggle
+            labels_var = tk.BooleanVar(value=self.plotter.pie_show_labels if hasattr(self.plotter, "pie_show_labels") else True)
+            labels_checkbox = tk.Checkbutton(adv_window, text="Show Labels", variable=labels_var, font=("Arial", 12), bg="#f0f0f0")
+            labels_checkbox.pack(pady=5)
+
+            # Legend Toggle
+            legend_var = tk.BooleanVar(value=self.plotter.pie_show_legend if hasattr(self.plotter, "pie_show_legend") else True)
+            legend_checkbox = tk.Checkbutton(adv_window, text="Show Legend", variable=legend_var, font=("Arial", 12), bg="#f0f0f0")
+            legend_checkbox.pack(pady=5)
+
+            # Save Button
+            save_button = tk.Button(
+                adv_window,
+                text="Save",
+                font=("Arial", 12),
+                command=lambda: self.save_advanced_settings({
+                    'pie_display_option': (display_var, str),
+                    'pie_show_labels': (labels_var, bool),
+                    'pie_show_legend': (legend_var, bool),
+                }, confirmation_text="Pie chart settings saved.")
+            )
+            save_button.pack(pady=(20, 10))
+    
+    
+    def save_advanced_settings(self, widget_map, confirmation_text="Advanced settings saved successfully!"):
+        for attr, (widget, cast) in widget_map.items():
+            try:
+                setattr(self.plotter, attr, cast(widget.get()))
+            except Exception:
+                setattr(self.plotter, attr, 0 if cast == float else False if cast == bool else "")
+        messagebox.showinfo("Settings Saved", confirmation_text)
+
+
+main
 
             def save_scatter_settings():
                 self.plotter.show_best_fit = best_fit_var.get()
