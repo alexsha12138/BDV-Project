@@ -12,9 +12,9 @@ class PlotManager:
         self.t1_ref1 = 0
         self.t1_ref2 = 0
         self.t2_bool = False
-suryastuff
+
         self.show_best_fit = True
-=======
+
         self.input_cat = " "
         self.anova = False
 
@@ -24,7 +24,7 @@ suryastuff
         self.pie_show_legend = True
 
 
-main
+
         
     def plot(self, df, plot_type, col1=None, col2=None, xres=1280, yres=720, title=None, xlabel=None, ylabel=None):
         # Convert pixel resolution to inches (DPI is typically 100)
@@ -133,7 +133,7 @@ main
         plt.ylim(0,two_bar_y*1.10169491525)
         print(two_bar_y)
 
- suryastuff
+
 
     def plot_scatter(self, df, col1, col2):
             sns.scatterplot(x=col1, y=col2, data=df)
@@ -143,12 +143,7 @@ main
 
             plt.xlabel(col1)
             plt.ylabel(col2)
-=======
-    def plot_scatter(self, df, col1, col2):
-        plt.scatter(df[col1], df[col2])
-        plt.xlabel(col1)
-        plt.ylabel(col2)
- main
+
 
     def plot_line(self, df, col1, col2):
         plt.plot(df[col1], df[col2], marker='o')
