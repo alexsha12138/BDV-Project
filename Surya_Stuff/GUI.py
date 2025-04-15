@@ -321,15 +321,14 @@ class CSVPlotterApp:
             )
             best_fit_checkbox.pack(pady=10, padx=20, anchor="w")
 
-            #Show Equation for LOBF
+            #Show Equation for LOBF if LOBF is selected
             equation_var = tk.BooleanVar(value=self.plotter.show_equation)
             equation_checkbox = tk.Checkbutton(
             adv_window,
             text="Show Equation",
             variable=equation_var,
             font=("Arial", 12),
-            state="normal" if best_fit_var.get() else "disabled"  # Initially enable/disable based on best_fit_var
-            )
+            state="normal" if best_fit_var.get() else "disabled")
             equation_checkbox.pack(pady=10, padx=20, anchor="w")
 
             #Show R value
