@@ -3,6 +3,7 @@ import seaborn as sns
 import scipy.stats as stats
 import pandas as pd
 from tkinter import messagebox
+from scipy.stats import linregress
 
 class PlotManager:
     def __init__(self):
@@ -96,6 +97,16 @@ class PlotManager:
             plt.text(0.5, two_bar_y*1.00423728814, self.p_val_mark(t2_p), ha = "center", va = "bottom", fontsize=18)
             plt.text(0.5, two_bar_y*0.95762711864, f"P: {self.round_num(t2_p)}", ha = "center", va = "bottom", fontsize=14)
 
+        def plot_scatter(self, df, col1, col2):
+            sns.scatterplot(x=col1, y=col2, data=df)
+
+        if self.show_best_fit:
+            slope, intercept, r_value, p_value, std_err = linregress(df[col1], df[col2])
+            self.line_equation = f"y = {slope:.2f}x + {intercept:.2f}"  # Store the equation
+            sns.regplot(x=col1, y=col2, data=df, scatter=False, line_kws={"color": "red"})
+
+    def get_line_equation(self):
+        return getattr(self, "line_equation", "No line of best fit calculated.")
         plt.ylim(0,two_bar_y*1.10169491525)
         print(two_bar_y)
 
@@ -104,14 +115,11 @@ class PlotManager:
 
     def plot_scatter(self, df, col1, col2):
         sns.scatterplot(x=col1, y=col2, data=df)
-
+        
         if self.show_best_fit:
+            slope, intercept, r_value, p_value, std_err = linregress(df[col1], df[col2])
+            self.line_equation = f"y = {slope:.2f}x + {intercept:.2f}"  # Store the equation
             sns.regplot(x=col1, y=col2, data=df, scatter=False, line_kws={"color": "red"})
-
-        plt.xlabel(col1)
-        plt.ylabel(col2)
-        
-        
 
     def plot_line(self, df, col1, col2):
         plt.plot(df[col1], df[col2], marker='o')
