@@ -309,17 +309,44 @@ class CSVPlotterApp:
             Line_label = tk.Label(adv_window, text="Scatter Plot", font=("Arial", 12), bg="#f0f0f0")
             Line_label.pack(pady=0)
 
+            #Line of Best Fit plot
             best_fit_var = tk.BooleanVar(value=self.plotter.show_best_fit) 
             best_fit_checkbox = tk.Checkbutton(adv_window, text="Show Line of Best Fit", variable=best_fit_var, font=("Arial", 12))
+            best_fit_checkbox = tk.Checkbutton(
+            adv_window,
+            text="Show Line of Best Fit",
+            variable=best_fit_var,
+            font=("Arial", 12),
+            command=lambda: equation_checkbox.config(state="normal" if best_fit_var.get() else "disabled")
+            )
             best_fit_checkbox.pack(pady=10)
 
+            #Show Equation for LOBF
             equation_var = tk.BooleanVar(value=self.plotter.show_equation)
-            equation_checkbox = tk.Checkbutton(adv_window, text="Display Equation", variable=equation_var, font=("Arial", 12))
+            equation_checkbox = tk.Checkbutton(
+            adv_window,
+            text="Show Equation",
+            variable=equation_var,
+            font=("Arial", 12),
+            state="normal" if best_fit_var.get() else "disabled"  # Initially enable/disable based on best_fit_var
+            )
             equation_checkbox.pack(pady=10)
 
+            #Show R value
+            r_var = tk.BooleanVar(value=self.plotter.show_r)
+            r_checkbox = tk.Checkbutton(adv_window,text="Show R (Correlation Coefficient)",variable=r_var,font=("Arial", 12))
+            r_checkbox.pack(pady=10)
+
+            #Show R² value
+            r2_var = tk.BooleanVar(value=self.plotter.show_r2)
+            r2_checkbox = tk.Checkbutton(adv_window,text="Show R² (Coefficient of Determination)",variable=r2_var,font=("Arial", 12))
+            r2_checkbox.pack(pady=10)
+            
             def save_scatter_settings():
                 self.plotter.show_best_fit = best_fit_var.get()
                 self.plotter.show_equation = equation_var.get()
+                self.plotter.show_r = r_var.get()
+                self.plotter.show_r2 = r2_var.get()
                 adv_window.destroy()
                 
 
