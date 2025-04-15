@@ -12,7 +12,9 @@ class PlotManager:
         self.t1_ref1 = 0
         self.t1_ref2 = 0
         self.t2_bool = False
-        self.show_best_fit = True
+        self.show_best_fit = False
+        self.show_equation = False
+        self.show_outliers = True
 
     def plot(self, df, plot_type, col1=None, col2=None, xres=1280, yres=720, title=None, xlabel=None, ylabel=None):
         # Convert pixel resolution to inches (DPI is typically 100)
@@ -120,6 +122,16 @@ class PlotManager:
             slope, intercept, r_value, p_value, std_err = linregress(df[col1], df[col2])
             self.line_equation = f"y = {slope:.2f}x + {intercept:.2f}"  # Store the equation
             sns.regplot(x=col1, y=col2, data=df, scatter=False, line_kws={"color": "red"})
+        
+        if self.show_equation and hasattr(self, "line_equation"):
+            plt.text(
+            x=df[col1].mean(),  # Position near the mean of x
+            y=df[col2].max(),   # Position near the max of y
+            s=self.line_equation,
+            color="red",
+            fontsize=10,
+            bbox=dict(facecolor="white", alpha=0.5, edgecolor="red")
+            )
 
     def plot_line(self, df, col1, col2):
         plt.plot(df[col1], df[col2], marker='o')
