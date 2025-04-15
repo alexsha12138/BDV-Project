@@ -12,6 +12,9 @@ class PlotManager:
         self.t1_ref1 = 0
         self.t1_ref2 = 0
         self.t2_bool = False
+
+        self.show_best_fit = True
+
         self.input_cat = " "
         self.anova = False
 
@@ -19,6 +22,7 @@ class PlotManager:
         self.pie_display_option = "count"   # "count", "percentage", "both", "neither"
         self.pie_show_labels = True
         self.pie_show_legend = True
+
 
 
         
@@ -129,10 +133,17 @@ class PlotManager:
         plt.ylim(0,two_bar_y*1.10169491525)
         print(two_bar_y)
 
+
+
     def plot_scatter(self, df, col1, col2):
-        plt.scatter(df[col1], df[col2])
-        plt.xlabel(col1)
-        plt.ylabel(col2)
+            sns.scatterplot(x=col1, y=col2, data=df)
+
+            if self.show_best_fit:
+                sns.regplot(x=col1, y=col2, data=df, scatter=False, line_kws={"color": "red"})
+
+            plt.xlabel(col1)
+            plt.ylabel(col2)
+
 
     def plot_line(self, df, col1, col2):
         plt.plot(df[col1], df[col2], marker='o')

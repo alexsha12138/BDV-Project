@@ -285,7 +285,7 @@ class CSVPlotterApp:
             t2_marker_var = tk.BooleanVar(value=self.plotter.t2_bool)
             t2_marker_checkbox = tk.Checkbutton(adv_window, text = "Plot 2 sample t-test", variable = t2_marker_var, font=("Arial", 12))
             t2_marker_checkbox.pack(pady=10)
-
+            '''
             def save_advanced_settings():
                 self.plotter.t1_bool = t1_marker_var.get()
                 self.plotter.t2_bool = t2_marker_var.get()
@@ -300,7 +300,7 @@ class CSVPlotterApp:
                 except ValueError:
                     self.plotter.t1_ref2 = 0
                 messagebox.showinfo("Settings Saved", "Advanced settings saved successfully!")
-
+            '''
             save_button = tk.Button(
                                     adv_window,
                                     text="Save",
@@ -312,6 +312,24 @@ class CSVPlotterApp:
                                     't1_ref2': (t1_col2_ref_entry, float),
                                 })
                             )
+            save_button.pack(pady=(20, 10))
+
+
+        #options for scatterplot
+        elif self.plot_type_combo.get() == "Scatter":
+            Line_label = tk.Label(adv_window, text="Scatter Plot", font=("Arial", 12), bg="#f0f0f0")
+            Line_label.pack(pady=0)
+
+            best_fit_var = tk.BooleanVar(value=True) 
+            best_fit_checkbox = tk.Checkbutton(adv_window, text="Show Line of Best Fit", variable=best_fit_var, font=("Arial", 12))
+            best_fit_checkbox.pack(pady=10)
+            
+
+            def save_scatter_settings():
+                self.plotter.show_best_fit = best_fit_var.get()
+                messagebox.showinfo("Settings Saved", "Scatter plot settings saved successfully!")
+
+            save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_scatter_settings)
             save_button.pack(pady=(20, 10))
 
         # advanced menu for bar plot with 2 numerical variables
@@ -388,7 +406,6 @@ class CSVPlotterApp:
             except Exception:
                 setattr(self.plotter, attr, 0 if cast == float else False if cast == bool else "")
         messagebox.showinfo("Settings Saved", confirmation_text)
-
 
 
 
