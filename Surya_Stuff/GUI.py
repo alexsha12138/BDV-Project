@@ -319,7 +319,7 @@ class CSVPlotterApp:
             font=("Arial", 12),
             command=lambda: equation_checkbox.config(state="normal" if best_fit_var.get() else "disabled")
             )
-            best_fit_checkbox.pack(pady=10)
+            best_fit_checkbox.pack(pady=10, padx=20, anchor="w")
 
             #Show Equation for LOBF
             equation_var = tk.BooleanVar(value=self.plotter.show_equation)
@@ -330,17 +330,17 @@ class CSVPlotterApp:
             font=("Arial", 12),
             state="normal" if best_fit_var.get() else "disabled"  # Initially enable/disable based on best_fit_var
             )
-            equation_checkbox.pack(pady=10)
+            equation_checkbox.pack(pady=10, padx=20, anchor="w")
 
             #Show R value
             r_var = tk.BooleanVar(value=self.plotter.show_r)
             r_checkbox = tk.Checkbutton(adv_window,text="Show R (Correlation Coefficient)",variable=r_var,font=("Arial", 12))
-            r_checkbox.pack(pady=10)
+            r_checkbox.pack(pady=10, padx=20, anchor="w")
 
             #Show R² value
             r2_var = tk.BooleanVar(value=self.plotter.show_r2)
             r2_checkbox = tk.Checkbutton(adv_window,text="Show R² (Coefficient of Determination)",variable=r2_var,font=("Arial", 12))
-            r2_checkbox.pack(pady=10)
+            r2_checkbox.pack(pady=10, padx=20, anchor="w")
             
             def save_scatter_settings():
                 self.plotter.show_best_fit = best_fit_var.get()
