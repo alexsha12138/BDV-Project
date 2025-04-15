@@ -320,6 +320,22 @@ class CSVPlotterApp:
             save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_scatter_settings)
             save_button.pack(pady=(20, 10))
 
+        #options for box plot
+        elif self.plot_type_combo.get() == "Box Plot":
+            box_label = tk.Label(adv_window, text="Box Plot", font=("Arial", 12), bg="#f0f0f0")
+            box_label.pack(pady=0)
+
+            outliers_var = tk.BooleanVar(value=True)
+            outliers_checkbox = tk.Checkbutton(adv_window, text="Show Outliers", variable=outliers_var, font=("Arial", 12))
+            outliers_checkbox.pack(pady=10)
+
+            def save_box_settings():
+                self.plotter.show_outliers = outliers_var.get()
+                messagebox.showinfo("Settings Saved", "Box plot settings saved successfully!")
+
+            save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_box_settings)
+            save_button.pack(pady=(20, 10))
+
 
 
     def update_plot_selection(self, event):

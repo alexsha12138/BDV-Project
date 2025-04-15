@@ -128,7 +128,11 @@ class PlotManager:
         sns.violinplot(x=df[col1], y=df[col2])
 
     def plot_box(self, df, col1, col2):
-        sns.boxplot(x=df[col1], y=df[col2])
+        sns.boxplot(x=df[col1], y=df[col2], showfliers=self.show_outliers)
+
+        plt.xlabel(col1)
+        plt.ylabel(col2)
+        
 
     def plot_hist(self, df, col1):
         plt.hist(df[col1], bins=20, color='skyblue', edgecolor='black')
