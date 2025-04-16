@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as stats
+from scipy.stats import linregress
 import pandas as pd
 from tkinter import messagebox
 
@@ -13,8 +14,17 @@ class PlotManager:
         self.t1_ref2 = 0
         self.t2_bool = False
 
+        #scatter
         self.show_best_fit = True
+        self.show_confidence_interval = True
+        self.show_best_fit = False
+        self.show_equation = False
+        self.show_r = False
+        self.show_r2 = False
 
+        #box
+        self.show_outliers = True
+        
         self.input_cat = " "
         self.anova = False
 
@@ -136,13 +146,34 @@ class PlotManager:
 
 
     def plot_scatter(self, df, col1, col2):
-            sns.scatterplot(x=col1, y=col2, data=df)
+        sns.scatterplot(x=col1, y=col2, data=df)
+        slope, intercept, r_value, p_value, std_err = linregress(df[col1], df[col2])
 
-            if self.show_best_fit:
-                sns.regplot(x=col1, y=col2, data=df, scatter=False, line_kws={"color": "red"})
+        if self.show_best_fit:
+            
+            self.line_equation = f"y = {slope:.2f}x + {intercept:.2f}"  # Store the equation
+            sns.regplot(x=col1, y=col2, data=df, ci=95 if self.show_confidence_interval else None, scatter=False, line_kws={"color": "red"})
+        
+        if self.show_equation and hasattr(self, "line_equation"):
+            plt.text(
+            x=df[col1].min() + 0.1,  # Position near the mean of x
+            y=df[col2].max(),   # Position near the max of y
+            s=self.line_equation,
+            color="red",
+            fontsize=10,
+            bbox=dict(facecolor="white", alpha=0.5, edgecolor="none")
+            )
 
-            plt.xlabel(col1)
-            plt.ylabel(col2)
+        if self.show_r:
+            plt.text(x=df[col1].min() + 0.1, y=df[col2].max() - (df[col2].max() - df[col2].min()) * 0.05,
+            s=f"R = {r_value:.2f}", color="red", fontsize=10, 
+            bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
+        
+        if self.show_r2:
+            r_squared = r_value ** 2
+            plt.text(x=df[col1].min() + 0.1, y=df[col2].max() - (df[col2].max() - df[col2].min()) * 0.1,
+            s=f"R² = {r_squared:.2f}", color="red", fontsize=10, 
+            bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
 
 
     def plot_line(self, df, col1, col2):
@@ -194,7 +225,7 @@ class PlotManager:
         sns.violinplot(data=df_melted, x="Group", y="Value", inner='box', palette="Set2")
 
     def plot_box(self, df, col1, col2):
-        sns.boxplot(x=df[col1], y=df[col2])
+        sns.boxplot(x=df[col1], y=df[col2], showfliers=self.show_outliers)
 
     def plot_hist(self, df, col1):
         plt.hist(df[col1], bins=20, color='skyblue', edgecolor='black')

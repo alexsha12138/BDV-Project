@@ -227,16 +227,21 @@ class CSVPlotterApp:
         self.plot_done = True # this is for updating the analyze button 
         self.analyze_button.config(state="normal")
 
-
     def analyze_data(self):
-            plot_type = self.plot_type_combo.get()
-            col1 = self.column1_combo.get()
-            col2 = self.column2_combo.get()
+        plot_type = self.plot_type_combo.get()
+        col1 = self.column1_combo.get()
+        col2 = self.column2_combo.get()
 
-            if col1 and col2 and plot_type not in ["Pie Chart", "Heat Map", "Histogram"]:
-                self.plotter.perform_stat_test(self.df, col1, col2)
-            else:
-                messagebox.showinfo("Analysis", "Statistical analysis is not applicable for this plot type.")
+        if plot_type == "Scatter" and col1 and col2:
+                from scipy.stats import linregress
+                slope, intercept, r_value, p_value, std_err = linregress(self.df[col1], self.df[col2])
+                equation = f"y = {slope:.2f}x + {intercept:.2f}"
+                messagebox.showinfo("Line of Best Fit", f"Equation: {equation}\nR: {r_value:.2f}\nR²: {r_value**2:.2f}")
+            
+        elif col1 and col2 and plot_type not in ["Pie Chart", "Heat Map", "Histogram"]:
+            self.plotter.perform_stat_test(self.df, col1, col2)
+        else:
+            messagebox.showinfo("Analysis", "Statistical analysis is not applicable for this plot type.")    
 
     def advanced_setting(self):
         adv_window = tk.Toplevel(self.root)
@@ -320,16 +325,83 @@ class CSVPlotterApp:
             Line_label = tk.Label(adv_window, text="Scatter Plot", font=("Arial", 12), bg="#f0f0f0")
             Line_label.pack(pady=0)
 
-            best_fit_var = tk.BooleanVar(value=True) 
+            #Line of Best Fit plot
+            best_fit_var = tk.BooleanVar(value=self.plotter.show_best_fit) 
             best_fit_checkbox = tk.Checkbutton(adv_window, text="Show Line of Best Fit", variable=best_fit_var, font=("Arial", 12))
-            best_fit_checkbox.pack(pady=10)
+            best_fit_checkbox = tk.Checkbutton(
+            adv_window,
+            text="Show Line of Best Fit",
+            variable=best_fit_var,
+            font=("Arial", 12),
+            command=lambda: toggle_dynamic_checkboxes())
+            best_fit_checkbox.pack(pady=10, padx=20, anchor="w")
+
+            def toggle_dynamic_checkboxes():
+                # Enable or disable the checkboxes based on the state of "Show Line of Best Fit"
+                state = "normal" if best_fit_var.get() else "disabled"
+                ci_checkbox.config(state=state)
+                equation_checkbox.config(state=state)
             
 
             def save_scatter_settings():
                 self.plotter.show_best_fit = best_fit_var.get()
                 messagebox.showinfo("Settings Saved", "Scatter plot settings saved successfully!")
 
+            # Checkbox for "Exclude Confidence Interval"
+            ci_var = tk.BooleanVar(value=not self.plotter.show_confidence_interval)  # Default to include CI
+            ci_checkbox = tk.Checkbutton(
+            adv_window,
+            text="Exclude Confidence Interval",
+            variable=ci_var,
+            font=("Arial", 12),
+            state="normal" if best_fit_var.get() else "disabled")  # Enable only if LOBF is selected
+            ci_checkbox.pack(pady=10, padx=20, anchor="w")
+
+            #Show Equation for LOBF if LOBF is selected
+            equation_var = tk.BooleanVar(value=self.plotter.show_equation)
+            equation_checkbox = tk.Checkbutton(
+            adv_window,
+            text="Show Equation",
+            variable=equation_var,
+            font=("Arial", 12),
+            state="normal" if best_fit_var.get() else "disabled")
+            equation_checkbox.pack(pady=10, padx=20, anchor="w")
+
+            #Show R value
+            r_var = tk.BooleanVar(value=self.plotter.show_r)
+            r_checkbox = tk.Checkbutton(adv_window,text="Show R (Correlation Coefficient)",variable=r_var,font=("Arial", 12), state="normal")
+            r_checkbox.pack(pady=10, padx=20, anchor="w")
+
+            #Show R² value
+            r2_var = tk.BooleanVar(value=self.plotter.show_r2)
+            r2_checkbox = tk.Checkbutton(adv_window,text="Show R² (Coefficient of Determination)",variable=r2_var,font=("Arial", 12), state="normal")
+            r2_checkbox.pack(pady=10, padx=20, anchor="w")
+            
+            def save_scatter_settings():
+                self.plotter.show_best_fit = best_fit_var.get()
+                self.plotter.show_confidence_interval = not ci_var.get()
+                self.plotter.show_equation = equation_var.get()
+                self.plotter.show_r = r_var.get()
+                self.plotter.show_r2 = r2_var.get()
+                adv_window.destroy()
+
             save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_scatter_settings)
+            save_button.pack(pady=(20, 10))
+            
+        #options for box plot
+        elif self.plot_type_combo.get() == "Box Plot":
+            box_label = tk.Label(adv_window, text="Box Plot", font=("Arial", 12), bg="#f0f0f0")
+            box_label.pack(pady=0)
+
+            outliers_var = tk.BooleanVar(value=self.plotter.show_outliers)
+            outliers_checkbox = tk.Checkbutton(adv_window, text="Show Outliers", variable=outliers_var, font=("Arial", 12))
+            outliers_checkbox.pack(pady=10)
+
+            def save_box_settings():
+                self.plotter.show_outliers = outliers_var.get()
+                adv_window.destroy()
+
+            save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_box_settings)
             save_button.pack(pady=(20, 10))
 
         # advanced menu for bar plot with 2 numerical variables
