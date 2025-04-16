@@ -17,6 +17,7 @@ class PlotManager:
         self.show_outliers = True
         self.show_r = False
         self.show_r2 = False
+        self.show_confidence_interval = True
 
     def plot(self, df, plot_type, col1=None, col2=None, xres=1280, yres=720, title=None, xlabel=None, ylabel=None):
         # Convert pixel resolution to inches (DPI is typically 100)
@@ -124,7 +125,7 @@ class PlotManager:
         if self.show_best_fit:
             
             self.line_equation = f"y = {slope:.2f}x + {intercept:.2f}"  # Store the equation
-            sns.regplot(x=col1, y=col2, data=df, scatter=False, line_kws={"color": "red"})
+            sns.regplot(x=col1, y=col2, data=df, ci=95 if self.show_confidence_interval else None, scatter=False, line_kws={"color": "red"})
         
         if self.show_equation and hasattr(self, "line_equation"):
             plt.text(
