@@ -99,10 +99,6 @@ class PlotManager:
         print(two_bar_y)
 
 
-
-        
-
-
     def plot_scatter(self, df, col1, col2):
         plt.scatter(df[col1], df[col2])
         plt.xlabel(col1)
@@ -120,7 +116,9 @@ class PlotManager:
         sns.heatmap(df.corr(), annot=True, cmap='coolwarm', fmt=".2f")
 
     def plot_violin(self, df, col1, col2):
-        sns.violinplot(x=df[col1], y=df[col2])
+        # Melt the data for seaborn
+        df_melted = df[[col1, col2]].melt(var_name="Group", value_name="Value")
+        sns.violinplot(data=df_melted, x="Group", y="Value", inner="box", palette="Set2") 
 
     def plot_box(self, df, col1, col2):
         sns.boxplot(x=df[col1], y=df[col2])
