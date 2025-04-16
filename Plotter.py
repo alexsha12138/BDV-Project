@@ -7,17 +7,31 @@ from tkinter import messagebox
 class PlotManager:
     def __init__(self):
         # Default advanced settings
+        # bar plots
         self.t1_bool = False
         self.t1_ref1 = 0
         self.t1_ref2 = 0
         self.t2_bool = False
+
+        self.show_best_fit = True
+
+        self.input_cat = " "
+        self.anova = False
+
+        # pie chart
+        self.pie_display_option = "count"   # "count", "percentage", "both", "neither"
+        self.pie_show_labels = True
+        self.pie_show_legend = True
+
+
+
         
     def plot(self, df, plot_type, col1=None, col2=None, xres=1280, yres=720, title=None, xlabel=None, ylabel=None):
         # Convert pixel resolution to inches (DPI is typically 100)
         dpi = 100
         width = xres / dpi
         height = yres / dpi
-        plt.figure(figsize=(width, height), dpi=dpi)
+        fig, ax = plt.subplots(figsize=(width, height), dpi=dpi)
 
         try:
             if plot_type == "Bar":
@@ -28,15 +42,16 @@ class PlotManager:
                         t1_ref1=self.t1_ref1,
                         t1_ref2=self.t1_ref2,
                         t2_bool=self.t2_bool)
-                else:
-                    # Default bar plot (e.g., categorical x, numeric y)
-                    self.plot_bar(df, col1, col2)
+                elif pd.api.types.is_string_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]):
+                    self.plot_bar_cat_num(df, col1, col2, 
+                                          input_cat = self.input_cat)
+
             elif plot_type == "Scatter":
                 self.plot_scatter(df, col1, col2)
             elif plot_type == "Line":
                 self.plot_line(df, col1, col2)
             elif plot_type == "Pie Chart":
-                self.plot_pie(df, col1)
+                self.plot_pie(df, col1, ax)
             elif plot_type == "Heat Map":
                 self.plot_heatmap(df)
             elif plot_type == "Violin Plot":
@@ -64,10 +79,30 @@ class PlotManager:
         except Exception as e:
             messagebox.showerror("Plot Error", f"Failed to generate plot:\n{e}")
     
-    def plot_bar(self, df, col1, col2):
-        plt.bar(df[col1].astype(str), df[col2], color='skyblue')
-        plt.xlabel(col1)
-        plt.ylabel(col2)
+    def plot_bar_cat_num (self, df, col1, col2, input_cat):
+        # Normalize user input
+        input_list_raw = [item.strip() for item in input_cat.split(",")]
+        input_list_lower = [item.lower() for item in input_list_raw]
+
+        # Clean and lowercase column values for filtering
+        df[col1] = df[col1].astype(str).str.strip()
+        df['__lower_temp__'] = df[col1].str.lower()
+
+        # Filter using lowercase match
+        filtered_df = df[df['__lower_temp__'].isin(input_list_lower)].copy()
+
+        # Replace country names in filtered_df with original casing from input
+        casing_map = {name.lower(): name for name in input_list_raw}
+        filtered_df[col1] = filtered_df['__lower_temp__'].map(casing_map)
+
+        avg_df = filtered_df.groupby(col1)[col2].mean().reset_index()
+        avg_df.columns = [col1, f"Average {col2}"]
+
+        sns.barplot(data=avg_df, x=col1, y=f'Average {col2}', hue = col1, palette='pastel', legend = False)
+        plt.title(f'Average {col2} by {col1}')
+        plt.ylabel(f'Average {col2}')
+        plt.xlabel(col1.capitalize())
+        plt.tight_layout()
 
     def plot_bar_2_num(self, df, col1, col2, t1_bool, t1_ref1, t1_ref2, t2_bool):
         titles = [col1, col2]
@@ -99,18 +134,56 @@ class PlotManager:
         print(two_bar_y)
 
 
+
     def plot_scatter(self, df, col1, col2):
-        plt.scatter(df[col1], df[col2])
-        plt.xlabel(col1)
-        plt.ylabel(col2)
+            sns.scatterplot(x=col1, y=col2, data=df)
+
+            if self.show_best_fit:
+                sns.regplot(x=col1, y=col2, data=df, scatter=False, line_kws={"color": "red"})
+
+            plt.xlabel(col1)
+            plt.ylabel(col2)
+
 
     def plot_line(self, df, col1, col2):
         plt.plot(df[col1], df[col2], marker='o')
 
 
-    def plot_pie(self, df, col1):
+    def plot_pie(self, df, col1, ax):
         counts = df[col1].value_counts()
-        plt.pie(counts, labels=counts.index, autopct='%1.1f%%')
+        labels = counts.index
+        sizes = counts.values
+
+        def autopct_func(pct, allvals=sizes):
+            count = int(round(pct / 100. * sum(allvals)))
+            if self.pie_display_option == "percentage":
+                return f"{pct:.1f}%"
+            elif self.pie_display_option == "count":
+                return f"{count}"
+            elif self.pie_display_option == "both":
+                return f"{pct:.1f}%\n({count})"
+            elif self.pie_display_option == "neither":
+                return None
+            else:
+                return None
+
+        
+        if self.pie_display_option != "neither":
+            wedges, texts, autotexts = ax.pie(
+                sizes,
+                labels=labels if self.pie_show_labels else None,
+                autopct=autopct_func,
+                startangle=90
+            )
+        else:
+            wedges, texts = ax.pie(
+                sizes,
+                labels=labels if self.pie_show_labels else None,
+                startangle=90
+            )
+
+        if self.pie_show_legend:
+            ax.legend(wedges, labels, title=col1, loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
 
     def plot_heatmap(self, df):
         sns.heatmap(df.corr(), annot=True, cmap='coolwarm', fmt=".2f")
