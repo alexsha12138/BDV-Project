@@ -4,6 +4,7 @@ import scipy.stats as stats
 from scipy.stats import linregress
 import pandas as pd
 from tkinter import messagebox
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 class PlotManager:
     def __init__(self):
@@ -12,7 +13,11 @@ class PlotManager:
         self.t1_bool = False
         self.t1_ref1 = 0
         self.t1_ref2 = 0
-        self.t2_bool = False
+        self.t2_bool = True
+        self.order = False
+
+        self.input_cat = " "
+        self.anova = False
 
         #scatter
         self.show_best_fit = True
@@ -25,8 +30,8 @@ class PlotManager:
         #box
         self.show_outliers = True
         
-        self.input_cat = " "
-        self.anova = False
+        #violin
+        self.anova_bool = True
 
         # pie chart
         self.pie_display_option = "count"   # "count", "percentage", "both", "neither"
@@ -36,7 +41,7 @@ class PlotManager:
 
 
         
-    def plot(self, df, plot_type, col1=None, col2=None, xres=1280, yres=720, title=None, xlabel=None, ylabel=None):
+    def plot(self, df, plot_type, col1=None, col2=None, col3=None, xres=1280, yres=720, title=None, xlabel=None, ylabel=None):
         # Convert pixel resolution to inches (DPI is typically 100)
         dpi = 100
         width = xres / dpi
@@ -65,7 +70,17 @@ class PlotManager:
             elif plot_type == "Heat Map":
                 self.plot_heatmap(df)
             elif plot_type == "Violin Plot":
-                self.plot_violin(df, col1, col2)
+                self.plot_violin(
+                    df,
+                    col1,
+                    col2,
+                    col3,  # Pass None if no third variable is selected
+                    t1_bool=self.t1_bool,
+                    t1_ref1=self.t1_ref1,
+                    t1_ref2=self.t1_ref2,
+                    t2_bool=self.t2_bool,
+                    anova_bool=self.anova_bool
+                )
             elif plot_type == "Box Plot":
                 self.plot_box(df, col1, col2)
             elif plot_type == "Histogram":
@@ -219,10 +234,103 @@ class PlotManager:
     def plot_heatmap(self, df):
         sns.heatmap(df.corr(), annot=True, cmap='coolwarm', fmt=".2f")
 
-    def plot_violin(self, df, col1, col2):
-        # Melt the data for seaborn
-        df_melted = df[[col1, col2]].melt(var_name="Group", value_name="Value")
-        sns.violinplot(data=df_melted, x="Group", y="Value", inner='box', palette="Set2")
+    def plot_violin(self, df, col1, col2, col3, t1_bool, t1_ref1, t1_ref2, t2_bool, anova_bool):
+        # Convert columns to numeric and drop non-numeric values
+        df[col1] = pd.to_numeric(df[col1], errors='coerce')
+        df[col2] = pd.to_numeric(df[col2], errors='coerce')
+        if col3:
+            df[col3] = pd.to_numeric(df[col3], errors='coerce')
+            print("here0")
+
+        # Drop rows with NaN values after conversion
+        df = df.dropna(subset=[col1, col2] + ([col3] if col3 else []))
+            
+
+        if pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and (col3 is None or col3 == ""):
+            var1 = df[col1]
+            var2 = df[col2]
+            df_plot = pd.DataFrame({
+                "Value": pd.concat([df[col1], df[col2]], ignore_index=True),
+                "Group": [col1] * len(df[col1]) + [col2] * len(df[col2])
+            })
+
+            ax = sns.violinplot(data=df_plot, x="Group", y="Value", inner="box", palette="Set2")
+            print("here1")
+
+            if t1_bool == True:
+                var1_t, var1_p = stats.ttest_1samp(var1, t1_ref1)
+                var2_t, var2_p = stats.ttest_1samp(var2, t1_ref2)
+
+                # Positioning the stars and P values closer to the violin plot
+                ylim = ax.get_ylim()
+                y_star = ylim[1] + (ylim[1] - ylim[0]) * 0.005  # Reduced space by 50%
+                y_pval = ylim[1] + (ylim[1] - ylim[0]) * 0.0025  # Reduced space by 50%
+
+                ax.text(0, y_star, self.p_val_mark(var1_p), ha="center", va="bottom", fontsize=12)
+                ax.text(1, y_star, self.p_val_mark(var2_p), ha="center", va="bottom", fontsize=12)
+
+                ax.text(0, y_pval, f"P: {self.round_num(var1_p)}", ha="center", va="bottom", fontsize=10)
+                ax.text(1, y_pval, f"P: {self.round_num(var2_p)}", ha="center", va="bottom", fontsize=10)
+
+                ax.set_ylim(ylim[0], y_star + (ylim[1] - ylim[0]) * 0.025)  # Adjusted y-axis limit
+            if t2_bool == True:
+                t_stat, p_value = stats.ttest_rel(var1, var2)
+
+                ylim = ax.get_ylim()
+                bar_y = ylim[1] + (ylim[1] - ylim[0]) * 0.05  # Reduced space for the bar
+
+                ax.plot([0, 1], [bar_y, bar_y], color="black", lw=1, zorder=10)
+
+                # Add p-value mark annotation slightly higher above the text
+                ax.annotate(self.p_val_mark(p_value), xy=(0.5, bar_y + (ylim[1] - ylim[0]) * 0.05), ha="center", fontsize=12, color="black")
+
+                ax.annotate(f"p = {p_value:.3e}", xy=(0.5, bar_y + (ylim[1] - ylim[0]) * 0.02), ha="center", fontsize=12, color="black")
+
+                ax.set_ylim(ylim[0], bar_y + (ylim[1] - ylim[0]) * 0.1)  # Adjusted y-axis limit
+        
+        elif pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and pd.api.types.is_numeric_dtype(df[col3]):
+            print("here2")
+            df_plot = pd.DataFrame({
+                "Value": pd.concat([df[col1], df[col2], df[col3]], ignore_index=True),
+                "Group": [col1] * len(df[col1]) + [col2] * len(df[col2]) + [col3] * len(df[col3])
+            })
+            ax = sns.violinplot(data=df_plot, x="Group", y="Value", inner="box", palette="Set2")
+            
+            if anova_bool:
+                anova_result = stats.f_oneway(df[col1], df[col2], df[col3])
+                p_value_anova = anova_result.pvalue
+                # Perform Tukey HSD for pairwise comparisons
+                pairwise_result = pairwise_tukeyhsd(df_plot['Value'], df_plot['Group'], alpha=0.05)
+                # Get the Tukey HSD summary
+                summary_data = pairwise_result.summary().data[1:]  # Skip the header row
+                p_values = [row[4] for row in summary_data]  # Extract p-values
+
+                # Define the pairs (for correct x-axis positions)
+                pairs = [(0, 1), (1, 2), (0, 2)]  # (1 vs 2, 2 vs 3, 1 vs 3)
+                
+                # Offset values for each comparison to avoid overlap
+                offset = 40
+                
+                # Plot bars for each pairwise comparison and display p-values
+                for idx, (i, j) in enumerate(pairs):
+                    p_val = p_values[idx]
+                    # Get the maximum value to place the p-value bar
+                    max_value = max(df[col1].max(), df[col2].max(), df[col3].max())
+                    
+                    # Adjust vertical offset for each pair to prevent overlap
+                    if idx == 1:  # For 2 vs 3 (second comparison)
+                        max_value += offset
+                    elif idx == 2:  # For 1 vs 3 (third comparison)
+                        max_value += 2 * offset  # Further offset
+                    
+                    # Draw a horizontal line/bar for the comparison
+                    ax.plot([i, i, j, j], [max_value + 7, max_value + 7.5, max_value + 7.5, max_value + 7], color="black", lw=1, zorder=10)
+                    ax.plot([i, j], [max_value + 7.5, max_value + 7.5], color="black", lw=1, zorder=10)
+
+                    # Add the p-value annotation for this comparison
+                    ax.annotate(f"p = {p_val:.3e}", xy=((i + j) / 2, max_value + 10), 
+                                ha="center", fontsize=12, color="black")
+
 
     def plot_box(self, df, col1, col2):
         sns.boxplot(x=df[col1], y=df[col2], showfliers=self.show_outliers)
