@@ -317,7 +317,9 @@ class CSVPlotterApp:
                     f"  Non-Outlier Minimum: {non_outlier_min:.2f}\n"
                     f"  Non-Outlier Maximum: {non_outlier_max:.2f}\n")
             
-            messagebox.showinfo("Box Plot Analysis", "\n\n".join(results))
+            # Display results in a scrollable window
+            self.show_scrollable_results("\n\n".join(results))
+    
 
         elif col1 and col2 and plot_type not in ["Pie Chart", "Heat Map", "Histogram"]:
             self.plotter.perform_stat_test(self.df, col1, col2)
@@ -667,3 +669,24 @@ class CSVPlotterApp:
         else:
             self.plot_button.config(state="disabled")
             self.analyze_button.config(state="disabled")
+
+    def show_scrollable_results(self, text):
+        # Create a new Toplevel window
+        result_window = tk.Toplevel(self.root)
+        result_window.title("Analysis Results")
+        result_window.geometry("600x400")
+
+        # Create a Text widget with a scrollbar
+        text_frame = tk.Frame(result_window)
+        text_frame.pack(fill="both", expand=True)
+
+        scrollbar = tk.Scrollbar(text_frame)
+        scrollbar.pack(side="right", fill="y")
+
+        text_widget = tk.Text(text_frame, wrap="word", yscrollcommand=scrollbar.set, font=("Arial", 12))
+        text_widget.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=text_widget.yview)
+
+        # Insert the text into the Text widget
+        text_widget.insert("1.0", text)
+        text_widget.config(state="disabled")  # Make the Text widget read-only
