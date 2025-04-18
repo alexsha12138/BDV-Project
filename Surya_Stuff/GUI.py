@@ -247,7 +247,6 @@ class CSVPlotterApp:
                 slope, intercept, r_value, p_value, std_err = linregress(self.df[col1], self.df[col2])
                 equation = f"y = {slope:.2f}x + {intercept:.2f}"
                 messagebox.showinfo("Line of Best Fit", f"Equation: {equation}\nR: {r_value:.2f}\nR²: {r_value**2:.2f}")
-        
         elif plot_type == "Box Plot" and col1 and col2:
             if col1 not in self.categorical_columns or col2 not in self.numeric_columns:
                 messagebox.showerror("Error", "Column 1 must be categorical and Column 2 must be numeric for Box Plot analysis.")
@@ -319,8 +318,6 @@ class CSVPlotterApp:
             
             # Display results in a scrollable window
             self.show_scrollable_results("\n\n".join(results))
-    
-
         elif col1 and col2 and plot_type not in ["Pie Chart", "Heat Map", "Histogram"]:
             self.plotter.perform_stat_test(self.df, col1, col2)
         else:
