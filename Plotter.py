@@ -50,16 +50,19 @@ class PlotManager:
 
         try:
             if plot_type == "Bar":
-                if pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]):
+                if pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and col3==None:
                     # Call the specialized two-numeric-column bar plot
                     self.plot_bar_2_num(df, col1, col2,
                         t1_bool=self.t1_bool,
                         t1_ref1=self.t1_ref1,
                         t1_ref2=self.t1_ref2,
                         t2_bool=self.t2_bool)
+                elif pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and pd.api.types.is_numeric_dtype(df[col3]):
+                    self.plot_bar_3_num(df, col1, col2, col3, anova_bool=self.anova_bool)
                 elif pd.api.types.is_string_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]):
                     self.plot_bar_cat_num(df, col1, col2, 
-                                          input_cat = self.input_cat)
+                                          input_cat=self.input_cat, 
+                                          anova_bool=self.anova_bool)
 
             elif plot_type == "Scatter":
                 self.plot_scatter(df, col1, col2)
@@ -79,7 +82,8 @@ class PlotManager:
                     t1_ref1=self.t1_ref1,
                     t1_ref2=self.t1_ref2,
                     t2_bool=self.t2_bool,
-                    anova_bool=self.anova_bool
+                    anova_bool=self.anova_bool,
+                    input_cat=self.input_cat
                 )
             elif plot_type == "Box Plot":
                 self.plot_box(df, col1, col2)
@@ -104,61 +108,87 @@ class PlotManager:
         except Exception as e:
             messagebox.showerror("Plot Error", f"Failed to generate plot:\n{e}")
     
-    def plot_bar_cat_num (self, df, col1, col2, input_cat):
-        # Normalize user input
-        input_list_raw = [item.strip() for item in input_cat.split(",")]
-        input_list_lower = [item.lower() for item in input_list_raw]
+    def plot_bar_cat_num(self, df, col1, col2, input_cat, anova_bool):
+        if input_cat.strip() == "":  # Check if input_cat is empty or contains only whitespace
+            # No filtering, use the entire DataFrame
+            avg_df = df.groupby(col1)[col2].mean().reset_index()
+            avg_df.columns = [col1, f"Average {col2}"]
+        else:
+            # Normalize user input
+            input_list_raw = [item.strip() for item in input_cat.split(",")]
+            input_list_lower = [item.lower() for item in input_list_raw]
 
-        # Clean and lowercase column values for filtering
-        df[col1] = df[col1].astype(str).str.strip()
-        df['__lower_temp__'] = df[col1].str.lower()
+            # Clean and lowercase column values for filtering
+            df[col1] = df[col1].astype(str).str.strip()
+            df['__lower_temp__'] = df[col1].str.lower()
 
-        # Filter using lowercase match
-        filtered_df = df[df['__lower_temp__'].isin(input_list_lower)].copy()
+            # Filter using lowercase match
+            filtered_df = df[df['__lower_temp__'].isin(input_list_lower)].copy()
 
-        # Replace country names in filtered_df with original casing from input
-        casing_map = {name.lower(): name for name in input_list_raw}
-        filtered_df[col1] = filtered_df['__lower_temp__'].map(casing_map)
+            # Replace category names in filtered_df with original casing from input
+            casing_map = {name.lower(): name for name in input_list_raw}
+            filtered_df[col1] = filtered_df['__lower_temp__'].map(casing_map)
 
-        avg_df = filtered_df.groupby(col1)[col2].mean().reset_index()
-        avg_df.columns = [col1, f"Average {col2}"]
+            avg_df = filtered_df.groupby(col1)[col2].mean().reset_index()
+            avg_df.columns = [col1, f"Average {col2}"]
 
-        sns.barplot(data=avg_df, x=col1, y=f'Average {col2}', hue = col1, palette='pastel', legend = False)
+        # Drop rows with NaN or Inf values in the relevant columns
+        avg_df = avg_df.replace([float('inf'), float('-inf')], float('nan')).dropna()
+
+        # Sort the DataFrame by the average values in descending order
+        avg_df = avg_df.sort_values(by=f"Average {col2}", ascending=False)
+
+        # Plot the bar graph
+        sns.barplot(data=avg_df, x=col1, y=f'Average {col2}', hue=col1, palette='pastel', dodge=False)
+
+        # Add horizontal guidelines based on y-axis tick marks
+        y_ticks = plt.gca().get_yticks()
+        for y in y_ticks:
+            plt.axhline(y=y, color='gray', linestyle='--', linewidth=0.5, alpha=0.7)
+
         plt.title(f'Average {col2} by {col1}')
         plt.ylabel(f'Average {col2}')
         plt.xlabel(col1.capitalize())
         plt.tight_layout()
 
+
     def plot_bar_2_num(self, df, col1, col2, t1_bool, t1_ref1, t1_ref2, t2_bool):
         titles = [col1, col2]
         var1 = df[col1]
         var2 = df[col2]
-        
-        var1_t, var1_p = stats.ttest_1samp(var1, t1_ref1)
-        var2_t, var2_p = stats.ttest_1samp(var2, t1_ref2)
+
+        # Perform two-sample t-test
         t2_t, t2_p = stats.ttest_ind(var1, var2)
 
-        sns.barplot(x = titles, y = [var1.mean(), var2.mean()], hue = titles, palette = ["lightcoral","skyblue"])
-        two_bar_y = int(max(var1.mean(), var2.mean()))
+        # Plot the bar chart
+        sns.barplot(x=titles, y=[var1.mean(), var2.mean()], hue=titles, palette=["lightcoral", "skyblue"])
 
-        if t1_bool == True:
-            
-            plt.text(0, two_bar_y*1.02966, self.p_val_mark(var1_p), ha = "center", va = "bottom", fontsize = 18)
-            plt.text(1, two_bar_y*1.02966, self.p_val_mark(var2_p), ha = "center", va = "bottom", fontsize = 18)
+        # Add horizontal guidelines based on y-axis tick marks
+        y_ticks = plt.gca().get_yticks()
+        for y in y_ticks:
+            plt.axhline(y=y, color='gray', linestyle='--', linewidth=0.5, alpha=0.7)
 
-            plt.text (0, var1.mean(), f"P: {self.round_num(var1_p)}", ha = "center", va = "bottom", fontsize=14)
-            plt.text (1, var2.mean(), f"P: {self.round_num(var2_p)}", ha = "center", va = "bottom", fontsize=14)
+        # Annotate t-test results
+        self.annotate_t_test_results(var1, var2, t1_bool, t2_bool, t1_ref1, t1_ref2, t2_p)
 
-        if t2_bool == True:
-            two_bar_y = max(var1.mean(), var2.mean()) * 1.09322033898
-            plt.plot([0,0,1,1], [two_bar_y,two_bar_y*1.00847457627, two_bar_y*1.00847457627, two_bar_y], lw=1.5, color= 'black')
-            plt.text(0.5, two_bar_y*1.00423728814, self.p_val_mark(t2_p), ha = "center", va = "bottom", fontsize=18)
-            plt.text(0.5, two_bar_y*0.95762711864, f"P: {self.round_num(t2_p)}", ha = "center", va = "bottom", fontsize=14)
+    
+    def plot_bar_3_num(self, df, col1, col2, col3, anova_bool):
+        titles = [col1, col2, col3]
+        means = {col: df[col].mean() for col in titles}
+        sorted_means = sorted(means.items(), key=lambda x: x[1], reverse=True)
 
-        plt.ylim(0,two_bar_y*1.10169491525)
-        print(two_bar_y)
+        sorted_titles = [item[0] for item in sorted_means]
+        sorted_values = [item[1] for item in sorted_means]
 
+        sns.barplot(x=sorted_titles, y=sorted_values, palette=["lightcoral", "skyblue", "lightgreen"])
 
+        # Add horizontal guidelines based on y-axis tick marks
+        y_ticks = plt.gca().get_yticks()
+        for y in y_ticks:
+            plt.axhline(y=y, color='gray', linestyle='--', linewidth=0.5, alpha=0.7)
+
+        if anova_bool:
+            self.annotate_anova_results(df, sorted_titles, use_mean=True)
 
     def plot_scatter(self, df, col1, col2):
         sns.scatterplot(x=col1, y=col2, data=df)
@@ -190,10 +220,8 @@ class PlotManager:
             s=f"R² = {r_squared:.2f}", color="red", fontsize=10, 
             bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
 
-
     def plot_line(self, df, col1, col2):
         plt.plot(df[col1], df[col2], marker='o')
-
 
     def plot_pie(self, df, col1, ax):
         counts = df[col1].value_counts()
@@ -234,103 +262,140 @@ class PlotManager:
     def plot_heatmap(self, df):
         sns.heatmap(df.corr(), annot=True, cmap='coolwarm', fmt=".2f")
 
-    def plot_violin(self, df, col1, col2, col3, t1_bool, t1_ref1, t1_ref2, t2_bool, anova_bool):
-        # Convert columns to numeric and drop non-numeric values
-        df[col1] = pd.to_numeric(df[col1], errors='coerce')
-        df[col2] = pd.to_numeric(df[col2], errors='coerce')
-        if col3:
-            df[col3] = pd.to_numeric(df[col3], errors='coerce')
-            print("here0")
+    def plot_violin(self, df, col1, col2, col3, t1_bool, t1_ref1, t1_ref2, t2_bool, anova_bool, input_cat):
+        # Check if col3 is None or empty string (indicating categorical vs numerical data)
+        if pd.api.types.is_string_dtype(df[col1]):
+            # if nothing is entered in the input box, use the entire DataFrame
+            if input_cat.strip() == "":  # Check if input_cat is empty or contains only whitespace
+                # No filtering, use the entire DataFrame
+                avg_df = df.groupby(col1)[col2].mean().reset_index()
+                avg_df.columns = [col1, f"Average {col2}"]
 
-        # Drop rows with NaN values after conversion
-        df = df.dropna(subset=[col1, col2] + ([col3] if col3 else []))
-            
+                # Sort categories by mean in descending order
+                sorted_categories = avg_df.sort_values(by=f"Average {col2}", ascending=False)[col1]
+                df[col1] = pd.Categorical(df[col1], categories=sorted_categories, ordered=True)
 
-        if pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and (col3 is None or col3 == ""):
-            var1 = df[col1]
-            var2 = df[col2]
-            df_plot = pd.DataFrame({
-                "Value": pd.concat([df[col1], df[col2]], ignore_index=True),
-                "Group": [col1] * len(df[col1]) + [col2] * len(df[col2])
-            })
+                # Plot the violin plot for all categories
+                sns.violinplot(data=df, x=col1, y=col2, palette='pastel', inner='box')
+            else:
+                # Normalize user input
+                input_list_raw = [item.strip() for item in input_cat.split(",")]
+                input_list_lower = [item.lower() for item in input_list_raw]
 
-            ax = sns.violinplot(data=df_plot, x="Group", y="Value", inner="box", palette="Set2")
-            print("here1")
+                # Clean and lowercase column values for filtering
+                df[col1] = df[col1].astype(str).str.strip()
+                df['__lower_temp__'] = df[col1].str.lower()
 
-            if t1_bool == True:
-                var1_t, var1_p = stats.ttest_1samp(var1, t1_ref1)
-                var2_t, var2_p = stats.ttest_1samp(var2, t1_ref2)
+                # Filter using lowercase match
+                filtered_df = df[df['__lower_temp__'].isin(input_list_lower)].copy()
 
-                # Positioning the stars and P values closer to the violin plot
-                ylim = ax.get_ylim()
-                y_star = ylim[1] + (ylim[1] - ylim[0]) * 0.005  # Reduced space by 50%
-                y_pval = ylim[1] + (ylim[1] - ylim[0]) * 0.0025  # Reduced space by 50%
+                # Replace category names in filtered_df with original casing from input
+                casing_map = {name.lower(): name for name in input_list_raw}
+                filtered_df[col1] = filtered_df['__lower_temp__'].map(casing_map)
 
-                ax.text(0, y_star, self.p_val_mark(var1_p), ha="center", va="bottom", fontsize=12)
-                ax.text(1, y_star, self.p_val_mark(var2_p), ha="center", va="bottom", fontsize=12)
+                avg_df = filtered_df.groupby(col1)[col2].mean().reset_index()
+                avg_df.columns = [col1, f"Average {col2}"]
 
-                ax.text(0, y_pval, f"P: {self.round_num(var1_p)}", ha="center", va="bottom", fontsize=10)
-                ax.text(1, y_pval, f"P: {self.round_num(var2_p)}", ha="center", va="bottom", fontsize=10)
+                # Sort categories by mean in descending order
+                sorted_categories = avg_df.sort_values(by=f"Average {col2}", ascending=False)[col1]
+                filtered_df[col1] = pd.Categorical(filtered_df[col1], categories=sorted_categories, ordered=True)
 
-                ax.set_ylim(ylim[0], y_star + (ylim[1] - ylim[0]) * 0.025)  # Adjusted y-axis limit
-            if t2_bool == True:
-                t_stat, p_value = stats.ttest_rel(var1, var2)
+                # Plot the violin plot for filtered categories
+                sns.violinplot(data=filtered_df, x=col1, y=col2, palette='pastel', inner='box')
 
-                ylim = ax.get_ylim()
-                bar_y = ylim[1] + (ylim[1] - ylim[0]) * 0.05  # Reduced space for the bar
+            plt.title(f'Distribution of {col2} by {col1}')
+            plt.ylabel(f'{col2}')
+            plt.xlabel(col1.capitalize())
+            plt.tight_layout()
 
-                ax.plot([0, 1], [bar_y, bar_y], color="black", lw=1, zorder=10)
+        # else, indicating all data selected are numerical
+        else:
+            # Convert columns to numeric and drop non-numeric values
+            df[col1] = pd.to_numeric(df[col1], errors='coerce')
+            df[col2] = pd.to_numeric(df[col2], errors='coerce')
+            if col3:
+                df[col3] = pd.to_numeric(df[col3], errors='coerce')
 
-                # Add p-value mark annotation slightly higher above the text
-                ax.annotate(self.p_val_mark(p_value), xy=(0.5, bar_y + (ylim[1] - ylim[0]) * 0.05), ha="center", fontsize=12, color="black")
+            # Drop rows with NaN values after conversion
+            df = df.dropna(subset=[col1, col2] + ([col3] if col3 else []))
 
-                ax.annotate(f"p = {p_value:.3e}", xy=(0.5, bar_y + (ylim[1] - ylim[0]) * 0.02), ha="center", fontsize=12, color="black")
+            if pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and (col3 is None or col3 == ""):
+                var1 = df[col1]
+                var2 = df[col2]
+                df_plot = pd.DataFrame({
+                    "Value": pd.concat([df[col1], df[col2]], ignore_index=True),
+                    "Group": [col1] * len(df[col1]) + [col2] * len(df[col2])
+                })
 
-                ax.set_ylim(ylim[0], bar_y + (ylim[1] - ylim[0]) * 0.1)  # Adjusted y-axis limit
-        
-        elif pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and pd.api.types.is_numeric_dtype(df[col3]):
-            print("here2")
-            df_plot = pd.DataFrame({
-                "Value": pd.concat([df[col1], df[col2], df[col3]], ignore_index=True),
-                "Group": [col1] * len(df[col1]) + [col2] * len(df[col2]) + [col3] * len(df[col3])
-            })
-            ax = sns.violinplot(data=df_plot, x="Group", y="Value", inner="box", palette="Set2")
-            
-            if anova_bool:
-                anova_result = stats.f_oneway(df[col1], df[col2], df[col3])
-                p_value_anova = anova_result.pvalue
-                # Perform Tukey HSD for pairwise comparisons
-                pairwise_result = pairwise_tukeyhsd(df_plot['Value'], df_plot['Group'], alpha=0.05)
-                # Get the Tukey HSD summary
-                summary_data = pairwise_result.summary().data[1:]  # Skip the header row
-                p_values = [row[4] for row in summary_data]  # Extract p-values
+                # Sort groups by mean in descending order
+                group_means = df_plot.groupby("Group")["Value"].mean().sort_values(ascending=False)
+                df_plot["Group"] = pd.Categorical(df_plot["Group"], categories=group_means.index, ordered=True)
 
-                # Define the pairs (for correct x-axis positions)
-                pairs = [(0, 1), (1, 2), (0, 2)]  # (1 vs 2, 2 vs 3, 1 vs 3)
-                
-                # Offset values for each comparison to avoid overlap
-                offset = 40
-                
-                # Plot bars for each pairwise comparison and display p-values
-                for idx, (i, j) in enumerate(pairs):
-                    p_val = p_values[idx]
-                    # Get the maximum value to place the p-value bar
-                    max_value = max(df[col1].max(), df[col2].max(), df[col3].max())
-                    
-                    # Adjust vertical offset for each pair to prevent overlap
-                    if idx == 1:  # For 2 vs 3 (second comparison)
-                        max_value += offset
-                    elif idx == 2:  # For 1 vs 3 (third comparison)
-                        max_value += 2 * offset  # Further offset
-                    
-                    # Draw a horizontal line/bar for the comparison
-                    ax.plot([i, i, j, j], [max_value + 7, max_value + 7.5, max_value + 7.5, max_value + 7], color="black", lw=1, zorder=10)
-                    ax.plot([i, j], [max_value + 7.5, max_value + 7.5], color="black", lw=1, zorder=10)
+                ax = sns.violinplot(data=df_plot, x="Group", y="Value", inner="box", palette="Set2")
 
-                    # Add the p-value annotation for this comparison
-                    ax.annotate(f"p = {p_val:.3e}", xy=((i + j) / 2, max_value + 10), 
-                                ha="center", fontsize=12, color="black")
+                if t1_bool:
+                    var1_t, var1_p = stats.ttest_1samp(var1, t1_ref1)
+                    var2_t, var2_p = stats.ttest_1samp(var2, t1_ref2)
 
+                    ylim = ax.get_ylim()
+                    y_star = ylim[1] + (ylim[1] - ylim[0]) * 0.005
+                    y_pval = ylim[1] + (ylim[1] - ylim[0]) * 0.0025
+
+                    ax.text(0, y_star, self.p_val_mark(var1_p), ha="center", va="bottom", fontsize=12)
+                    ax.text(1, y_star, self.p_val_mark(var2_p), ha="center", va="bottom", fontsize=12)
+
+                    ax.text(0, y_pval, f"P: {self.round_num(var1_p)}", ha="center", va="bottom", fontsize=10)
+                    ax.text(1, y_pval, f"P: {self.round_num(var2_p)}", ha="center", va="bottom", fontsize=10)
+
+                    ax.set_ylim(ylim[0], y_star + (ylim[1] - ylim[0]) * 0.025)
+                if t2_bool:
+                    t_stat, p_value = stats.ttest_rel(var1, var2)
+
+                    ylim = ax.get_ylim()
+                    bar_y = ylim[1] + (ylim[1] - ylim[0]) * 0.05
+
+                    ax.plot([0, 1], [bar_y, bar_y], color="black", lw=1, zorder=10)
+                    ax.annotate(self.p_val_mark(p_value), xy=(0.5, bar_y + (ylim[1] - ylim[0]) * 0.05), ha="center", fontsize=12, color="black")
+                    ax.annotate(f"p = {p_value:.3e}", xy=(0.5, bar_y + (ylim[1] - ylim[0]) * 0.02), ha="center", fontsize=12, color="black")
+
+                    ax.set_ylim(ylim[0], bar_y + (ylim[1] - ylim[0]) * 0.1)
+
+            elif pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and pd.api.types.is_numeric_dtype(df[col3]):
+                df_plot = pd.DataFrame({
+                    "Value": pd.concat([df[col1], df[col2], df[col3]], ignore_index=True),
+                    "Group": [col1] * len(df[col1]) + [col2] * len(df[col2]) + [col3] * len(df[col3])
+                })
+
+                # Sort groups by mean in descending order
+                group_means = df_plot.groupby("Group")["Value"].mean().sort_values(ascending=False)
+                df_plot["Group"] = pd.Categorical(df_plot["Group"], categories=group_means.index, ordered=True)
+
+                ax = sns.violinplot(data=df_plot, x="Group", y="Value", inner="box", palette="Set2")
+
+                if anova_bool:
+                    anova_result = stats.f_oneway(df[col1], df[col2], df[col3])
+                    p_value_anova = anova_result.pvalue
+
+                    pairwise_result = pairwise_tukeyhsd(df_plot['Value'], df_plot['Group'], alpha=0.05)
+                    summary_data = pairwise_result.summary().data[1:]
+                    p_values = [row[4] for row in summary_data]
+
+                    pairs = [(0, 1), (1, 2), (0, 2)]
+                    offset = 40
+
+                    for idx, (i, j) in enumerate(pairs):
+                        p_val = p_values[idx]
+                        max_value = max(df[col1].max(), df[col2].max(), df[col3].max())
+
+                        if idx == 1:
+                            max_value += offset
+                        elif idx == 2:
+                            max_value += 2 * offset
+
+                        ax.plot([i, i, j, j], [max_value + 7, max_value + 7.5, max_value + 7.5, max_value + 7], color="black", lw=1, zorder=10)
+                        ax.plot([i, j], [max_value + 7.5, max_value + 7.5], color="black", lw=1, zorder=10)
+
+                        ax.annotate(f"p = {p_val:.3e}", xy=((i + j) / 2, max_value + 10), ha="center", fontsize=12, color="black")
 
     def plot_box(self, df, col1, col2):
         sns.boxplot(x=df[col1], y=df[col2], showfliers=self.show_outliers)
@@ -358,7 +423,96 @@ class PlotManager:
             return ("")
         
     def round_num (self, num):
+
         if num < 0.001 or num > 1000:
             return f"{num:.2e}"
         else:
             return f"{num:.2f}"
+        
+    def annotate_anova_results(self, df, variables, use_mean=True):
+        """
+        Annotates ANOVA results and Tukey HSD pairwise comparisons on a bar plot.
+
+        Args:
+            df (pd.DataFrame): The DataFrame containing the data.
+            variables (list): List of column names for the independent variables.
+            use_mean (bool): If True, use the mean to calculate max_value; otherwise, use max().
+        """
+        # Prepare data for ANOVA
+        var_data = [df[var] for var in variables]
+        df_plot = pd.DataFrame({
+            "Value": pd.concat(var_data, ignore_index=True),
+            "Group": sum([[var] * len(df[var]) for var in variables], [])
+        })
+
+        # Sort variables by their mean or max value in descending order
+        sorted_variables = sorted(variables, key=lambda var: df[var].mean() if use_mean else df[var].max(), reverse=True)
+        sorted_indices = {var: idx for idx, var in enumerate(sorted_variables)}
+
+        # Perform ANOVA
+        anova_result = stats.f_oneway(*[df[var] for var in sorted_variables])
+        p_value_anova = anova_result.pvalue
+
+        # Perform Tukey HSD for pairwise comparisons
+        pairwise_result = pairwise_tukeyhsd(df_plot['Value'], df_plot['Group'], alpha=0.05)
+        summary_data = pairwise_result.summary().data[1:]  # Skip the header row
+        p_values = [row[4] for row in summary_data]  # Extract p-values
+
+        # Define the pairs (for correct x-axis positions)
+        pairs = [(sorted_indices[row[0]], sorted_indices[row[1]]) for row in summary_data]
+
+        # Plot bars for each pairwise comparison and display p-values
+        for idx, (i, j) in enumerate(pairs):
+            p_val = p_values[idx]
+
+            # Get the maximum value to place the p-value bar
+            max_value = max([df[var].mean() if use_mean else df[var].max() for var in sorted_variables])
+
+            # Adjust vertical offset for each pair to prevent overlap
+            offset = 0.045 * (idx + 1)  # Incremental offset for each pair
+            max_value += max_value * offset
+
+            # Draw a horizontal line/bar for the comparison
+            plt.plot([i, i, j, j], [max_value, max_value * 1.01, max_value * 1.01, max_value], color="black", lw=1, zorder=10)
+            plt.plot([i, j], [max_value * 1.01, max_value * 1.01], color="black", lw=1, zorder=10)
+
+            # Add the p-value annotation for this comparison
+            plt.annotate(f"p = {p_val:.3e}", xy=((i + j) / 2, max_value * 1.02),
+                        ha="center", fontsize=12, color="black")
+    
+    def annotate_t_test_results(self, var1, var2, t1_bool, t2_bool, t1_ref1, t1_ref2, t2_p):
+        """
+        Annotates t-test results on a bar plot.
+
+        Args:
+            var1 (pd.Series): Data for the first variable.
+            var2 (pd.Series): Data for the second variable.
+            t1_bool (bool): Whether to perform and annotate one-sample t-tests.
+            t2_bool (bool): Whether to perform and annotate two-sample t-tests.
+            t1_ref1 (float): Reference value for the one-sample t-test for var1.
+            t1_ref2 (float): Reference value for the one-sample t-test for var2.
+            t2_p (float): P-value for the two-sample t-test.
+        """
+        two_bar_y = max(var1.mean(), var2.mean())
+
+        if t1_bool:
+            _, var1_p = stats.ttest_1samp(var1, t1_ref1)
+            _, var2_p = stats.ttest_1samp(var2, t1_ref2)
+
+            # Annotate one-sample t-test results with dynamic spacing
+            spacing_factor = 0.03 + 0.02 * (var1.mean() / var2.mean() if var1.mean() > var2.mean() else var2.mean() / var1.mean())
+            plt.text(0, var1.mean() * (1 + spacing_factor), self.p_val_mark(var1_p), ha="center", va="bottom", fontsize=14)
+            plt.text(1, var2.mean() * (1 + spacing_factor), self.p_val_mark(var2_p), ha="center", va="bottom", fontsize=14)
+
+            plt.text(0, var1.mean() * (1 + spacing_factor / 2), f"P: {self.round_num(var1_p)}", ha="center", va="bottom", fontsize=12)
+            plt.text(1, var2.mean() * (1 + spacing_factor / 2), f"P: {self.round_num(var2_p)}", ha="center", va="bottom", fontsize=12)
+
+        if t2_bool:
+            # Annotate two-sample t-test results
+            two_bar_y *= 1.1
+            plt.plot([0, 0, 1, 1], [two_bar_y, two_bar_y * 1.003, two_bar_y * 1.003, two_bar_y], lw=1.5, color='black')
+            plt.text(0.5, two_bar_y * 1.03, self.p_val_mark(t2_p), ha="center", va="bottom", fontsize=14)
+            plt.text(0.5, two_bar_y * 1.01, f"P: {self.round_num(t2_p)}", ha="center", va="bottom", fontsize=12)
+
+        # Adjust y-axis limit
+        plt.ylim(0, two_bar_y * 1.1)
