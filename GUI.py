@@ -102,13 +102,19 @@ class CSVPlotterApp:
         self.plot_type_combo.grid(row=3, column=1, pady=5)
         self.plot_type_combo.bind("<<ComboboxSelected>>", self.plot_type_selected)
 
+        #Graph info Button
+        button_row = tk.Frame(controls_frame, bg="#f0f0f0")
+        button_row.grid(row=4, column=1, columnspan=2, pady=20)
+        
+        self.graph_info = tk.Button(button_row, text="Graph Info", font=("Arial", 12), state="normal", width=10,command=self.graph_info)
+        self.graph_info.pack(side="left", padx=10)
 
         # Resolution entries
         res_label = tk.Label(controls_frame, text="Resolution:", font=("Arial", 12), bg="#f0f0f0")
-        res_label.grid(row=4, column=0, sticky="w", pady=(20, 5))
+        res_label.grid(row=5, column=0, sticky="w", pady=(20, 5))
 
         res_frame = tk.Frame(controls_frame, bg="#f0f0f0")
-        res_frame.grid(row=4, column=1, pady=(20, 5), sticky="w")
+        res_frame.grid(row=5, column=1, pady=(20, 5), sticky="w")
 
         self.xres_entry = tk.Entry(res_frame, font=("Arial", 12), width=8)
         self.xres_entry.insert(0, "1280")
@@ -125,26 +131,26 @@ class CSVPlotterApp:
 
         # Title
         title_label = tk.Label(controls_frame, text="Title:", font=("Arial", 12), bg="#f0f0f0")
-        title_label.grid(row=5, column=0, sticky="w")
+        title_label.grid(row=6, column=0, sticky="w")
         self.title_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30)
-        self.title_entry.grid(row=5, column=1, pady=5)
+        self.title_entry.grid(row=6, column=1, pady=5)
 
         # x label
         xlabel_label = tk.Label(controls_frame, text="X Label:", font=("Arial", 12), bg="#f0f0f0")
-        xlabel_label.grid(row=6, column=0, sticky="w")
+        xlabel_label.grid(row=7, column=0, sticky="w")
         self.xlabel_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30)
-        self.xlabel_entry.grid(row=6, column=1, pady=5)
+        self.xlabel_entry.grid(row=7, column=1, pady=5)
 
         # y label
         ylabel_label = tk.Label(controls_frame, text="Y Label:", font=("Arial", 12), bg="#f0f0f0")
-        ylabel_label.grid(row=7, column=0, sticky="w")
+        ylabel_label.grid(row=8, column=0, sticky="w")
         self.ylabel_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30)
-        self.ylabel_entry.grid(row=7, column=1, pady=5)
+        self.ylabel_entry.grid(row=8, column=1, pady=5)
 
 
         # Plot & analyze buttons
         button_row = tk.Frame(controls_frame, bg="#f0f0f0")
-        button_row.grid(row=8, column=0, columnspan=2, pady=20)
+        button_row.grid(row=9, column=0, columnspan=2, pady=20)
 
         self.plot_button = tk.Button(button_row, text="Plot", font=("Arial", 12), state="disabled", command=self.plot_graph, width = 10)
         self.plot_button.pack(side="left", padx=5)
@@ -687,3 +693,7 @@ class CSVPlotterApp:
         # Insert the text into the Text widget
         text_widget.insert("1.0", text)
         text_widget.config(state="disabled")  # Make the Text widget read-only
+
+    def graph_info(self):
+        info_text = ("hi")
+        messagebox.showinfo("Graph Info", info_text)
