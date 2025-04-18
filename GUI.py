@@ -695,5 +695,75 @@ class CSVPlotterApp:
         text_widget.config(state="disabled")  # Make the Text widget read-only
 
     def graph_info(self):
-        info_text = ("hi")
+        # Get the selected plot type
+        plot_type = self.plot_type_combo.get()
+
+        # Define information for each plot type
+        if plot_type == "Bar":
+            info_text = (
+                "Bar Graph Info:\n\n"
+                "- A bar graph is used to compare categories of data.\n"
+                "- X-axis: Categorical variable.\n"
+                "- Y-axis: Numerical variable.\n"
+                "- Example: Sales by product category."
+            )
+        elif plot_type == "Scatter":
+            info_text = (
+                "Scatter Plot Info:\n\n"
+                "- A scatter plot is used to show relationships between two numerical variables.\n"
+                "- X-axis: Numerical variable.\n"
+                "- Y-axis: Numerical variable.\n"
+                "- Example: Age vs. Income."
+            )
+        elif plot_type == "Line":
+            info_text = (
+                "Line Graph Info:\n\n"
+                "- A line graph is used to show trends over time or continuous data.\n"
+                "- X-axis: Numerical variable (e.g., time).\n"
+                "- Y-axis: Numerical variable.\n"
+                "- Example: Stock prices over time."
+            )
+        elif plot_type == "Pie Chart":
+            info_text = (
+                "Pie Chart Info:\n\n"
+                "- A pie chart is used to show proportions of categories.\n"
+                "- Only one categorical variable is required.\n"
+                "- Example: Market share by company."
+            )
+        elif plot_type == "Heat Map":
+            info_text = (
+                "Heat Map Info:\n\n"
+                "- A heat map is used to visualize data in a matrix format with color coding.\n"
+                "- X-axis: Categorical variable.\n"
+                "- Y-axis: Categorical variable.\n"
+                "- Example: Correlation matrix."
+            )
+        elif plot_type == "Violin Plot":
+            info_text = (
+                "Violin Plot Info:\n\n"
+                "- A violin plot is used to show the distribution of numerical data across categories.\n"
+                "- X-axis: Categorical variable.\n"
+                "- Y-axis: Numerical variable.\n"
+                "- Example: Test scores by class."
+            )
+        elif plot_type == "Box Plot":
+            info_text = (
+                "Box Plot Info:\n\n"
+                "- A box plot is used to show the distribution of numerical data.\n"
+                "- X-axis: Categorical variable.\n"
+                "- Y-axis: Numerical variable.\n"
+                "- Example: Salary distribution by department."
+            )
+        elif plot_type == "Histogram":
+            info_text = (
+                "Histogram Info:\n\n"
+                "- A histogram is used to show the distribution of a single numerical variable.\n"
+                "- X-axis: Numerical variable (bins).\n"
+                "- Y-axis: Frequency.\n"
+                "- Example: Age distribution in a population."
+            )
+        else:
+            info_text = "Please select a valid plot type."
+
+        # Display the information in a message box
         messagebox.showinfo("Graph Info", info_text)
