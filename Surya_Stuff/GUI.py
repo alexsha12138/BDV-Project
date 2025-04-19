@@ -256,14 +256,11 @@ class CSVPlotterApp:
                 slope, intercept, r_value, p_value, std_err = linregress(self.df[col1], self.df[col2])
                 equation = f"y = {slope:.2f}x + {intercept:.2f}"
                 messagebox.showinfo("Line of Best Fit", f"Equation: {equation}\nR: {r_value:.2f}\nR²: {r_value**2:.2f}")
-        elif plot_type == "Box Plot" and col1 and col2:
-            if col1 not in self.categorical_columns or col2 not in self.numeric_columns:
-                messagebox.showerror("Error", "Column 1 must be categorical and Column 2 must be numeric for Box Plot analysis.")
-                return         
 
-            results = []   
-            
-            # overall Math
+        elif plot_type == "Box Plot" and col1 and col2:
+            results = []
+
+            # Calculate overall statistics for col2
             overall_data = self.df[col2].dropna()
             overall_minimum = overall_data.min()
             overall_q1 = overall_data.quantile(0.25)
@@ -277,7 +274,7 @@ class CSVPlotterApp:
             overall_non_outlier_min = overall_non_outliers.min()
             overall_non_outlier_max = overall_non_outliers.max()
 
-            # Displat overall results
+            # Append overall statistics
             results.append(
                 "Overall Statistics:\n\n"
                 f"  Minimum: {overall_minimum:.2f}\n"
@@ -289,48 +286,53 @@ class CSVPlotterApp:
                 f"  Outlier Lower Bound: {overall_lower_bound:.2f}\n"
                 f"  Outlier Upper Bound: {overall_upper_bound:.2f}\n"
                 f"  Non-Outlier Minimum: {overall_non_outlier_min:.2f}\n"
-                f"  Non-Outlier Maximum: {overall_non_outlier_max:.2f}\n")
-            
-            #Categorical grouping
-            grouped = self.df.groupby(col1)
-            for category, group in grouped:
-                data = group[col2].dropna()  # Drop NaN values for analysis
-                if data.empty:
-                    continue 
-                
-                #category math
-                minimum = data.min()
-                q1 = data.quantile(0.25)
-                median = data.median()
-                q3 = data.quantile(0.75)
-                maximum = data.max()
-                iqr = q3 - q1
-                lower_bound = q1 - 1.5 * overall_iqr
-                upper_bound = q3 + 1.5 * overall_iqr
-                non_outliers = data[(overall_data >= overall_lower_bound) & (overall_data <= overall_upper_bound)]
-                non_outlier_min = non_outliers.min()
-                non_outlier_max = non_outliers.max()
-                
-                #append results
-                results.append(
-                    f"Category: {category}\n\n"
-                    f"  Minimum: {minimum:.2f}\n"
-                    f"  1st Quartile (Q1): {q1:.2f}\n"
-                    f"  Median: {median:.2f}\n"
-                    f"  3rd Quartile (Q3): {q3:.2f}\n"
-                    f"  Maximum: {maximum:.2f}\n"
-                    f"  IQR: {iqr:.2f}\n"
-                    f"  Outlier Lower Bound: {lower_bound:.2f}\n"
-                    f"  Outlier Upper Bound: {upper_bound:.2f}\n"
-                    f"  Non-Outlier Minimum: {non_outlier_min:.2f}\n"
-                    f"  Non-Outlier Maximum: {non_outlier_max:.2f}\n")
-            
+                f"  Non-Outlier Maximum: {overall_non_outlier_max:.2f}\n"
+            )
+
+            # Check if col1 is categorical and col2 is numeric
+            if col1 in self.categorical_columns and col2 in self.numeric_columns:
+                grouped = self.df.groupby(col1)
+                for category, group in grouped:
+                    data = group[col2].dropna()  # Drop NaN values for analysis
+                    if data.empty:
+                        continue
+
+                    # Calculate statistics for each category
+                    minimum = data.min()
+                    q1 = data.quantile(0.25)
+                    median = data.median()
+                    q3 = data.quantile(0.75)
+                    maximum = data.max()
+                    iqr = q3 - q1
+                    lower_bound = q1 - 1.5 * iqr
+                    upper_bound = q3 + 1.5 * iqr
+                    non_outliers = data[(data >= lower_bound) & (data <= upper_bound)]
+                    non_outlier_min = non_outliers.min()
+                    non_outlier_max = non_outliers.max()
+
+                    # Append results for the category
+                    results.append(
+                        f"Category: {category}\n\n"
+                        f"  Minimum: {minimum:.2f}\n"
+                        f"  1st Quartile (Q1): {q1:.2f}\n"
+                        f"  Median: {median:.2f}\n"
+                        f"  3rd Quartile (Q3): {q3:.2f}\n"
+                        f"  Maximum: {maximum:.2f}\n"
+                        f"  IQR: {iqr:.2f}\n"
+                        f"  Outlier Lower Bound: {lower_bound:.2f}\n"
+                        f"  Outlier Upper Bound: {upper_bound:.2f}\n"
+                        f"  Non-Outlier Minimum: {non_outlier_min:.2f}\n"
+                        f"  Non-Outlier Maximum: {non_outlier_max:.2f}\n"
+                    )
+
             # Display results in a scrollable window
             self.show_scrollable_results("\n\n".join(results))
+            return
+
         elif col1 and col2 and plot_type not in ["Pie Chart", "Heat Map", "Histogram"]:
             self.plotter.perform_stat_test(self.df, col1, col2)
         else:
-            messagebox.showinfo("Analysis", "Statistical analysis is not applicable for this plot type.")    
+            messagebox.showinfo("Analysis", "Statistical analysis is not applicable for this plot type.")
 
     def advanced_setting(self):
         adv_window = tk.Toplevel(self.root)
