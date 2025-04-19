@@ -362,3 +362,19 @@ class PlotManager:
             return f"{num:.2e}"
         else:
             return f"{num:.2f}"
+        
+    def pairplot(self, df, numeric_columns):
+        """
+        Generates a pairplot for all numerical variables in the dataset.
+
+        Parameters:
+        - df: pandas DataFrame containing the dataset.
+        - numeric_columns: List of numerical column names to include in the pairplot.
+        """
+        if not numeric_columns:
+            raise ValueError("No numerical columns available for pairplot.")
+
+        # Generate the pairplot
+        sns.pairplot(df[numeric_columns])
+        plt.suptitle("Pairplot of Numerical Variables", y=1.02)  # Add a title
+        plt.show()
