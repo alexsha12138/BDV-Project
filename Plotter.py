@@ -136,6 +136,12 @@ class PlotManager:
             avg_df = filtered_df.groupby(col1)[col2].mean().reset_index()
             avg_df.columns = [col1, f"Average {col2}"]
 
+            # Sort by mean
+            avg_df = avg_df.sort_values(by=f"Average {col2}", ascending=False)
+
+            # Reorder input_list_raw to match sorted order
+            sorted_categories = avg_df[col1].tolist()
+
         # Drop rows with NaN or Inf values in the relevant columns
         avg_df = avg_df.replace([float('inf'), float('-inf')], float('nan')).dropna()
 
@@ -150,10 +156,57 @@ class PlotManager:
         for y in y_ticks:
             plt.axhline(y=y, color='gray', linestyle='--', linewidth=0.5, alpha=0.7)
 
-        plt.title(f'Average {col2} by {col1}')
-        plt.ylabel(f'Average {col2}')
-        plt.xlabel(col1.capitalize())
-        plt.tight_layout()
+        # Annotate the plot with p-values if ANOVA is selected
+        if anova_bool:
+            if input_cat.strip() == "":
+                # If no input is provided, use all categories
+                unique_categories = df[col1].unique()
+                if len(unique_categories) == 2:
+                    # Perform t-test for two groups
+                    group1 = df[df[col1] == unique_categories[0]][col2]
+                    group2 = df[df[col1] == unique_categories[1]][col2]
+                    t2_t, t2_p = stats.ttest_ind(group1, group2, equal_var=False)
+
+                    # Annotate t-test results
+                    self.annotate_t_test_results(
+                    group1, group2,
+                    t1_bool=False, t2_bool=True,
+                    t1_ref1=0, t1_ref2=0,
+                    t2_p=t2_p
+                    )
+                elif len(unique_categories) > 2:
+                    # Restructure the DataFrame for ANOVA
+                    anova_df = pd.DataFrame()
+                    for category in unique_categories:
+                        anova_df[category] = df[df[col1] == category][col2].reset_index(drop=True)
+                    print(anova_df.head())
+                    anova_df = anova_df.dropna(how="any")
+                    # Perform ANOVA for multiple groups using the restructured DataFrame
+                    self.annotate_anova_results(anova_df, unique_categories, use_mean=True)
+            else:
+                # If input is provided, use the filtered categories
+                if len(input_list_raw) == 2:
+                    # Perform t-test for two groups
+                    group1 = filtered_df[filtered_df[col1] == input_list_raw[0]][col2]
+                    group2 = filtered_df[filtered_df[col1] == input_list_raw[1]][col2]
+                    t2_t, t2_p = stats.ttest_ind(group1, group2, equal_var=False)
+
+                    # Annotate t-test results
+                    self.annotate_t_test_results(
+                    group1, group2,
+                    t1_bool=False, t2_bool=True,
+                    t1_ref1=0, t1_ref2=0,
+                    t2_p=t2_p
+                    )
+                elif len(input_list_raw) > 2:
+                    # Restructure the DataFrame for ANOVA
+                    anova_df = pd.DataFrame()
+                    anova_df = anova_df.dropna(how="any")
+                    for category in input_list_raw:
+                        anova_df[category] = filtered_df[filtered_df[col1] == category][col2].reset_index(drop=True)
+                    print(anova_df.head())
+                    # Perform ANOVA for multiple groups using the restructured DataFrame
+                    self.annotate_anova_results(anova_df, sorted_categories, use_mean=True)
 
 
     def plot_bar_2_num(self, df, col1, col2, t1_bool, t1_ref1, t1_ref2, t2_bool):
@@ -174,7 +227,6 @@ class PlotManager:
 
         # Annotate t-test results
         self.annotate_t_test_results(var1, var2, t1_bool, t2_bool, t1_ref1, t1_ref2, t2_p)
-
     
     def plot_bar_3_num(self, df, col1, col2, col3, anova_bool):
         titles = [col1, col2, col3]
@@ -447,6 +499,7 @@ class PlotManager:
             use_mean (bool): If True, use the mean to calculate max_value; otherwise, use max().
         """
         # Prepare data for ANOVA
+
         var_data = [df[var] for var in variables]
         df_plot = pd.DataFrame({
             "Value": pd.concat(var_data, ignore_index=True),
@@ -456,6 +509,7 @@ class PlotManager:
         # Sort variables by their mean or max value in descending order
         sorted_variables = sorted(variables, key=lambda var: df[var].mean() if use_mean else df[var].max(), reverse=True)
         sorted_indices = {var: idx for idx, var in enumerate(sorted_variables)}
+
 
         # Perform ANOVA
         anova_result = stats.f_oneway(*[df[var] for var in sorted_variables])
