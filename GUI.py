@@ -190,7 +190,7 @@ class CSVPlotterApp:
 
                 self.column1_combo.config(state="readonly")
                 self.column2_combo.config(state="readonly")
-                self.plot_type_combo.config(state="disabled")
+                self.plot_type_combo.config(state="readonly")
 
                 values = [""] +self.numeric_columns + self.categorical_columns
                 self.column1_combo['values'] = values
