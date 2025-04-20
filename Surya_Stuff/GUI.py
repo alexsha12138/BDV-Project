@@ -102,7 +102,6 @@ class CSVPlotterApp:
         self.plot_type_combo.grid(row=3, column=1, pady=5)
         self.plot_type_combo.bind("<<ComboboxSelected>>", self.plot_type_selected)
 
-
         #Graph info Button
         button_row = tk.Frame(controls_frame, bg="#f0f0f0")
         button_row.grid(row=4, column=1, columnspan=2, pady=20)
@@ -162,8 +161,6 @@ class CSVPlotterApp:
         # Advanced setting button
         self.advanced_button = tk.Button(button_row, text="Advanced..", font=("Arial", 12), state="disabled", width=10, command=self.advanced_setting)
         self.advanced_button.pack (side = "left", padx=30)
-
-
 
     def csv_upload(self):
         file_path = filedialog.askopenfilename(title="Select CSV File", filetypes=[("CSV Files", "*.csv")])
@@ -256,7 +253,6 @@ class CSVPlotterApp:
                 slope, intercept, r_value, p_value, std_err = linregress(self.df[col1], self.df[col2])
                 equation = f"y = {slope:.2f}x + {intercept:.2f}"
                 messagebox.showinfo("Line of Best Fit", f"Equation: {equation}\nR: {r_value:.2f}\nR²: {r_value**2:.2f}")
-
         elif plot_type == "Box Plot" and col1 and col2:
             results = []
 
@@ -328,11 +324,10 @@ class CSVPlotterApp:
             # Display results in a scrollable window
             self.show_scrollable_results("\n\n".join(results))
             return
-
         elif col1 and col2 and plot_type not in ["Pie Chart", "Heat Map", "Histogram"]:
             self.plotter.perform_stat_test(self.df, col1, col2)
         else:
-            messagebox.showinfo("Analysis", "Statistical analysis is not applicable for this plot type.")
+            messagebox.showinfo("Analysis", "Statistical analysis is not applicable for this plot type.")    
 
     def advanced_setting(self):
         adv_window = tk.Toplevel(self.root)
@@ -344,6 +339,7 @@ class CSVPlotterApp:
 
         col1 = self.column1_combo.get()
         col2 = self.column2_combo.get()
+        col3 = self.column3_combo.get()
 
         if self.plot_type_combo.get() == "Line":
             Line_label = tk.Label(adv_window, text="Line Graph", font=("Arial", 12), bg="#f0f0f0")
@@ -353,9 +349,39 @@ class CSVPlotterApp:
             marker_var = tk.BooleanVar()
             marker_checkbox = tk.Checkbutton(adv_window, text = "Show Marker", variable = marker_var, font=("Arial", 12))
             marker_checkbox.pack(pady=10)
+        
+        # advanced menu for bar plot with 1 categorical and 1 numerical variables
+        elif self.plot_type_combo.get() == "Bar" and col1 in self.categorical_columns and col2 in self.numeric_columns:
+            Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0")
+            Line_label.pack(pady=0)
 
+            # Entry box for input category names
+            input_cat_label = tk.Label(adv_window, text = "Input Group (separated by \",\"): ")
+            input_cat_label.pack(pady=10)
+            input_cat_entry = tk.Entry(adv_window, font = ("Arial", 12), width=20)
+            input_cat_entry.pack(pady=10)
+            input_cat_entry.insert(0, self.plotter.input_cat)
+
+            # Checkbox for Anova
+            anova_var = tk.BooleanVar(value=self.plotter.t1_bool)
+            anova_checkbox = tk.Checkbutton(adv_window, text = "Perform ANOVA/T-Test", variable = anova_var, font=("Arial", 12))
+            anova_checkbox.pack(pady=10)
+            
+
+            save_button = tk.Button(
+                                    adv_window,
+                                    text="Save",
+                                    font=("Arial", 12),
+                                    command=lambda: self.save_advanced_settings({
+                                        'input_cat': (input_cat_entry, str),
+                                        'anova': (anova_var, bool)
+                                    })
+                                )
+
+            save_button.pack(pady=(20, 10))
+        
         # advanced menu for bar plot with 2 numerical variables
-        elif self.plot_type_combo.get() == "Bar" and col1 in self.numeric_columns and col2 in self.numeric_columns:
+        elif self.plot_type_combo.get() == "Bar" and col1 in self.numeric_columns and col2 in self.numeric_columns and col3 == "":
             Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0")
             Line_label.pack(pady=0)
 
@@ -381,22 +407,7 @@ class CSVPlotterApp:
             t2_marker_var = tk.BooleanVar(value=self.plotter.t2_bool)
             t2_marker_checkbox = tk.Checkbutton(adv_window, text = "Plot 2 sample t-test", variable = t2_marker_var, font=("Arial", 12))
             t2_marker_checkbox.pack(pady=10)
-            '''
-            def save_advanced_settings():
-                self.plotter.t1_bool = t1_marker_var.get()
-                self.plotter.t2_bool = t2_marker_var.get()
-
-                # ensures entries are numbers, or else default to 0
-                try:
-                    self.plotter.t1_ref1 = float(t1_col1_ref_entry.get())
-                except ValueError:
-                    self.plotter.t1_ref1 = 0
-                try:
-                    self.plotter.t1_ref2 = float(t1_col2_ref_entry.get())
-                except ValueError:
-                    self.plotter.t1_ref2 = 0
-                messagebox.showinfo("Settings Saved", "Advanced settings saved successfully!")
-            '''
+            
             save_button = tk.Button(
                                     adv_window,
                                     text="Save",
@@ -408,6 +419,25 @@ class CSVPlotterApp:
                                     't1_ref2': (t1_col2_ref_entry, float),
                                 })
                             )
+            save_button.pack(pady=(20, 10))
+
+        # bar plot with 3 numerical variables
+        elif self.plot_type_combo.get() == "Bar" and col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:
+            Bar_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0")
+            Bar_label.pack(pady=0)
+            # check box for anova
+            anova_bool = tk.BooleanVar(value=self.plotter.anova_bool)
+            anova_bool_checkbox = tk.Checkbutton(adv_window, text = "ANOVA test", variable = anova_bool, font=("Arial", 12))
+            anova_bool_checkbox.pack(pady=10)
+
+            save_button = tk.Button(
+                    adv_window,
+                    text="Save",
+                    font=("Arial", 12),
+                    command=lambda: self.save_advanced_settings({
+                        'anova_bool': (anova_bool, bool),
+                    }, confirmation_text="Violin plot settings saved.")
+                )
             save_button.pack(pady=(20, 10))
 
 
@@ -495,35 +525,6 @@ class CSVPlotterApp:
             save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_box_settings)
             save_button.pack(pady=(20, 10))
 
-        # advanced menu for bar plot with 1 categorical and 1 numerical variables
-        elif self.plot_type_combo.get() == "Bar" and col1 in self.categorical_columns and col2 in self.numeric_columns:
-            Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0")
-            Line_label.pack(pady=0)
-
-            # Entry box for input category names
-            input_cat_label = tk.Label(adv_window, text = "Input Group (separated by \",\"): ")
-            input_cat_label.pack(pady=10)
-            input_cat_entry = tk.Entry(adv_window, font = ("Arial", 12), width=20)
-            input_cat_entry.pack(pady=10)
-            input_cat_entry.insert(0, self.plotter.input_cat)
-
-            # Checkbox for Anova
-            anova_var = tk.BooleanVar(value=self.plotter.t1_bool)
-            anova_checkbox = tk.Checkbutton(adv_window, text = "Perform ANOVA", variable = anova_var, font=("Arial", 12))
-            anova_checkbox.pack(pady=10)
-            
-
-            save_button = tk.Button(
-                                    adv_window,
-                                    text="Save",
-                                    font=("Arial", 12),
-                                    command=lambda: self.save_advanced_settings({
-                                        'input_cat': (input_cat_entry, str),
-                                        'anova': (anova_var, bool)
-                                    })
-                                )
-
-            save_button.pack(pady=(20, 10))
         
         elif self.plot_type_combo.get() == "Pie Chart":
             Pie_label = tk.Label(adv_window, text="Pie Chart", font=("Arial", 12), bg="#f0f0f0")
@@ -561,47 +562,105 @@ class CSVPlotterApp:
             )
             save_button.pack(pady=(20, 10))
 
+        elif self.plot_type_combo.get() == "Histogram":
+            hist_label = tk.Label(adv_window, text="Histogram", font=("Arial", 12), bg="#f0f0f0")
+            hist_label.pack(pady=0)
+
+            # Number of bins
+            bins_label = tk.Label(adv_window, text="Number of bins:", font=("Arial", 12), bg="#f0f0f0")
+            bins_label.pack(pady=(10, 0))
+
+            bins_entry = tk.Entry(adv_window, font=("Arial", 12), width=10)
+            bins_entry.pack(pady=5)
+            bins_entry.insert(0, str(self.plotter.bin_size))
+
+            # kernel density estimation
+            kde_var = tk.BooleanVar(value=self.plotter.kde_bool)
+            kde_checkbox = tk.Checkbutton(adv_window, text="Show Kernel Density Estimation", variable=kde_var, font=("Arial", 12), bg="#f0f0f0")
+            kde_checkbox.pack(pady=5)
+
+            # Save Button
+            save_button = tk.Button(
+                adv_window,
+                text="Save",
+                font=("Arial", 12),
+                command=lambda: self.save_advanced_settings({
+                    'bin_size': (bins_entry, int),
+                    'kde_bool': (kde_var, bool),
+                }, confirmation_text="Histogram settings saved.")
+            )
+            save_button.pack(pady=(20, 10))
+        
         elif self.plot_type_combo.get() == "Violin Plot":
             Violin_label = tk.Label(adv_window, text="Violin Plot", font=("Arial", 12), bg="#f0f0f0")
             Violin_label.pack(pady=0)
 
             if self.column3_combo.get() == "":
-                # check box for 1 sample t-test
-                t1_marker_var = tk.BooleanVar(value=self.plotter.t1_bool)
-                t1_marker_checkbox = tk.Checkbutton(adv_window, text = "Plot 1 sample t-test", variable = t1_marker_var, font=("Arial", 12))
-                t1_marker_checkbox.pack(pady=10)
+                if col1 in self.categorical_columns and col2 in self.numeric_columns:
+                    Violin_label_label = tk.Label(adv_window, text="Violin Graph", font=("Arial", 12), bg="#f0f0f0")
+                    Violin_label_label.pack(pady=0)
 
-                # reference values for 1 sample t-test
-                t1_col1_ref_lab = tk.Label(adv_window, text = "Variable 1 reference value:",font=("Arial", 12), bg="#f0f0f0")
-                t1_col1_ref_lab.pack(pady=0)
-                t1_col1_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10)
-                t1_col1_ref_entry.pack(pady=10)
-                t1_col1_ref_entry.insert(0, str(self.plotter.t1_ref1))
-                
-                t1_col2_ref_lab = tk.Label(adv_window, text = "Variable 2 reference value:",font=("Arial", 12), bg="#f0f0f0")
-                t1_col2_ref_lab.pack(pady=0)
-                t1_col2_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10)
-                t1_col2_ref_entry.pack(pady=10)
-                t1_col2_ref_entry.insert(0, str(self.plotter.t1_ref2))
+                    # Entry box for input category names
+                    input_cat_label = tk.Label(adv_window, text = "Input Group (separated by \",\"): ")
+                    input_cat_label.pack(pady=10)
+                    input_cat_entry = tk.Entry(adv_window, font = ("Arial", 12), width=20)
+                    input_cat_entry.pack(pady=10)
+                    input_cat_entry.insert(0, self.plotter.input_cat)
 
-                # check box for 2 sample t-test
-                t2_marker_var = tk.BooleanVar(value=self.plotter.t2_bool)
-                t2_marker_checkbox = tk.Checkbutton(adv_window, text = "Plot 2 sample t-test", variable = t2_marker_var, font=("Arial", 12))
-                t2_marker_checkbox.pack(pady=10)
+                    # Checkbox for Anova
+                    anova_var = tk.BooleanVar(value=self.plotter.t1_bool)
+                    anova_checkbox = tk.Checkbutton(adv_window, text = "Perform ANOVA", variable = anova_var, font=("Arial", 12))
+                    anova_checkbox.pack(pady=10)
+                    
 
-                save_button = tk.Button(
-                    adv_window,
-                    text="Save",
-                    font=("Arial", 12),
-                    command=lambda: self.save_advanced_settings({
-                        't1_bool': (t1_marker_var, bool),
-                        't2_bool': (t2_marker_var, bool),
-                        't1_ref1': (t1_col1_ref_entry, float),
-                        't1_ref2': (t1_col2_ref_entry, float),
-                    }, confirmation_text="Violin plot settings saved.")
-                )
-                save_button.pack(pady=(20, 10))
+                    save_button = tk.Button(
+                                            adv_window,
+                                            text="Save",
+                                            font=("Arial", 12),
+                                            command=lambda: self.save_advanced_settings({
+                                                'input_cat': (input_cat_entry, str),
+                                                'anova': (anova_var, bool)
+                                            })
+                                        )
 
+                    save_button.pack(pady=(20, 10))
+
+                elif col1 in self.numeric_columns and col2 in self.numeric_columns:
+                    # check box for 1 sample t-test
+                    t1_marker_var = tk.BooleanVar(value=self.plotter.t1_bool)
+                    t1_marker_checkbox = tk.Checkbutton(adv_window, text = "Plot 1 sample t-test", variable = t1_marker_var, font=("Arial", 12))
+                    t1_marker_checkbox.pack(pady=10)
+
+                    # reference values for 1 sample t-test
+                    t1_col1_ref_lab = tk.Label(adv_window, text = "Variable 1 reference value:",font=("Arial", 12), bg="#f0f0f0")
+                    t1_col1_ref_lab.pack(pady=0)
+                    t1_col1_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10)
+                    t1_col1_ref_entry.pack(pady=10)
+                    t1_col1_ref_entry.insert(0, str(self.plotter.t1_ref1))
+                    
+                    t1_col2_ref_lab = tk.Label(adv_window, text = "Variable 2 reference value:",font=("Arial", 12), bg="#f0f0f0")
+                    t1_col2_ref_lab.pack(pady=0)
+                    t1_col2_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10)
+                    t1_col2_ref_entry.pack(pady=10)
+                    t1_col2_ref_entry.insert(0, str(self.plotter.t1_ref2))
+
+                    # check box for 2 sample t-test
+                    t2_marker_var = tk.BooleanVar(value=self.plotter.t2_bool)
+                    t2_marker_checkbox = tk.Checkbutton(adv_window, text = "Plot 2 sample t-test", variable = t2_marker_var, font=("Arial", 12))
+                    t2_marker_checkbox.pack(pady=10)
+
+                    save_button = tk.Button(
+                        adv_window,
+                        text="Save",
+                        font=("Arial", 12),
+                        command=lambda: self.save_advanced_settings({
+                            't1_bool': (t1_marker_var, bool),
+                            't2_bool': (t2_marker_var, bool),
+                            't1_ref1': (t1_col1_ref_entry, float),
+                            't1_ref2': (t1_col2_ref_entry, float),
+                        }, confirmation_text="Violin plot settings saved.")
+                    )
+                    save_button.pack(pady=(20, 10))
             else:
                 # anova boolean marker
                 anova_var = tk.BooleanVar(value=self.plotter.anova_bool)
@@ -641,13 +700,13 @@ class CSVPlotterApp:
             self.plot_type_combo.set("")
             
             if col1 in self.numeric_columns and col2 =="" and col3 == "":
-                self.plot_type_combo["values"] = [""]
+                self.plot_type_combo["values"] = ["Histogram"]
             elif col1 in self.numeric_columns and col2 in self.categorical_columns:
                 self.plot_type_combo["values"] = [""]
             elif col1 in self.categorical_columns and col2 in self.numeric_columns:
                 self.plot_type_combo["values"] = ["Bar", "Violin Plot", "Box Plot"]
             elif col1 in self.numeric_columns and col2 in self.numeric_columns and col3 =="":
-                self.plot_type_combo["values"] = ["Scatter", "Line", "Histogram", "Bar", "Violin Plot", "Box Plot"]
+                self.plot_type_combo["values"] = ["Scatter", "Line", "Bar", "Violin Plot", "Box Plot"]
             elif col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:
                 self.plot_type_combo["values"] = ["Bar", "Violin Plot", "Box Plot"]
             elif col1 in self.categorical_columns and col2 == "":
