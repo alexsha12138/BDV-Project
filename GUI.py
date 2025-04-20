@@ -98,7 +98,7 @@ class CSVPlotterApp:
         plot_type_label.grid(row=3, column=0, sticky="w")
 
         self.plot_type_combo = ttk.Combobox(controls_frame, state="enabled", font=("Arial", 12),
-                                            values=["Heat Map", "Pair plot"])
+                                            values=["Heat Map", "Pairplot"])
         self.plot_type_combo.grid(row=3, column=1, pady=5)
         self.plot_type_combo.bind("<<ComboboxSelected>>", self.plot_type_selected)
 
@@ -213,6 +213,21 @@ class CSVPlotterApp:
 
     def plot_graph(self):
         plot_type = self.plot_type_combo.get()
+
+        if plot_type == "Pairplot":
+            if self.df is None:
+                messagebox.showerror("Error", "No dataset loaded!")
+                return
+            if not self.numeric_columns:
+                messagebox.showerror("Error", "No numerical variables available for pairplot!")
+                return
+            try:
+                self.plotter.pairplot(self.df, self.numeric_columns)
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to create pairplot: {str(e)}")
+            return
+
+        # Existing logic for other plot types
         col1 = self.column1_combo.get()
         col2 = self.column2_combo.get()
         col3 = self.column3_combo.get()
