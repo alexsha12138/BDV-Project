@@ -97,8 +97,8 @@ class CSVPlotterApp:
         plot_type_label = tk.Label(controls_frame, text="Select plot type:", font=("Arial", 12), bg="#f0f0f0")
         plot_type_label.grid(row=3, column=0, sticky="w")
 
-        self.plot_type_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12),
-                                            values=["Bar", "Scatter", "Line", "Pie Chart", "Heat Map", "Violin Plot", "Box Plot", "Histogram"])
+        self.plot_type_combo = ttk.Combobox(controls_frame, state="enabled", font=("Arial", 12),
+                                            values=["Heat Map", "Pair plot"])
         self.plot_type_combo.grid(row=3, column=1, pady=5)
         self.plot_type_combo.bind("<<ComboboxSelected>>", self.plot_type_selected)
 
@@ -363,7 +363,7 @@ class CSVPlotterApp:
             input_cat_entry.insert(0, self.plotter.input_cat)
 
             # Checkbox for Anova
-            anova_var = tk.BooleanVar(value=self.plotter.t1_bool)
+            anova_var = tk.BooleanVar(value=self.plotter.anova_bool)
             anova_checkbox = tk.Checkbutton(adv_window, text = "Perform ANOVA/T-Test", variable = anova_var, font=("Arial", 12))
             anova_checkbox.pack(pady=10)
             
@@ -374,7 +374,7 @@ class CSVPlotterApp:
                                     font=("Arial", 12),
                                     command=lambda: self.save_advanced_settings({
                                         'input_cat': (input_cat_entry, str),
-                                        'anova': (anova_var, bool)
+                                        'anova_bool': (anova_var, bool)
                                     })
                                 )
 
@@ -701,6 +701,8 @@ class CSVPlotterApp:
             
             if col1 in self.numeric_columns and col2 =="" and col3 == "":
                 self.plot_type_combo["values"] = ["Histogram"]
+            elif col1 =="" and col2 =="" and col3 =="":
+                self.plot_type_combo["values"] = ["Pair Plot", "Heat Map"]
             elif col1 in self.numeric_columns and col2 in self.categorical_columns:
                 self.plot_type_combo["values"] = [""]
             elif col1 in self.categorical_columns and col2 in self.numeric_columns:
