@@ -525,7 +525,6 @@ class CSVPlotterApp:
             save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_box_settings)
             save_button.pack(pady=(20, 10))
 
-
         
         elif self.plot_type_combo.get() == "Pie Chart":
             Pie_label = tk.Label(adv_window, text="Pie Chart", font=("Arial", 12), bg="#f0f0f0")
@@ -563,6 +562,35 @@ class CSVPlotterApp:
             )
             save_button.pack(pady=(20, 10))
 
+        elif self.plot_type_combo.get() == "Histogram":
+            hist_label = tk.Label(adv_window, text="Histogram", font=("Arial", 12), bg="#f0f0f0")
+            hist_label.pack(pady=0)
+
+            # Number of bins
+            bins_label = tk.Label(adv_window, text="Number of bins:", font=("Arial", 12), bg="#f0f0f0")
+            bins_label.pack(pady=(10, 0))
+
+            bins_entry = tk.Entry(adv_window, font=("Arial", 12), width=10)
+            bins_entry.pack(pady=5)
+            bins_entry.insert(0, str(self.plotter.bin_size))
+
+            # kernel density estimation
+            kde_var = tk.BooleanVar(value=self.plotter.kde_bool)
+            kde_checkbox = tk.Checkbutton(adv_window, text="Show Kernel Density Estimation", variable=kde_var, font=("Arial", 12), bg="#f0f0f0")
+            kde_checkbox.pack(pady=5)
+
+            # Save Button
+            save_button = tk.Button(
+                adv_window,
+                text="Save",
+                font=("Arial", 12),
+                command=lambda: self.save_advanced_settings({
+                    'bin_size': (bins_entry, int),
+                    'kde_bool': (kde_var, bool),
+                }, confirmation_text="Histogram settings saved.")
+            )
+            save_button.pack(pady=(20, 10))
+        
         elif self.plot_type_combo.get() == "Violin Plot":
             Violin_label = tk.Label(adv_window, text="Violin Plot", font=("Arial", 12), bg="#f0f0f0")
             Violin_label.pack(pady=0)
@@ -672,13 +700,13 @@ class CSVPlotterApp:
             self.plot_type_combo.set("")
             
             if col1 in self.numeric_columns and col2 =="" and col3 == "":
-                self.plot_type_combo["values"] = [""]
+                self.plot_type_combo["values"] = ["Histogram"]
             elif col1 in self.numeric_columns and col2 in self.categorical_columns:
                 self.plot_type_combo["values"] = [""]
             elif col1 in self.categorical_columns and col2 in self.numeric_columns:
                 self.plot_type_combo["values"] = ["Bar", "Violin Plot", "Box Plot"]
             elif col1 in self.numeric_columns and col2 in self.numeric_columns and col3 =="":
-                self.plot_type_combo["values"] = ["Scatter", "Line", "Histogram", "Bar", "Violin Plot", "Box Plot"]
+                self.plot_type_combo["values"] = ["Scatter", "Line", "Bar", "Violin Plot", "Box Plot"]
             elif col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:
                 self.plot_type_combo["values"] = ["Bar", "Violin Plot", "Box Plot"]
             elif col1 in self.categorical_columns and col2 == "":
