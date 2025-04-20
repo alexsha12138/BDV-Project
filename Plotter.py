@@ -38,6 +38,10 @@ class PlotManager:
         self.pie_show_labels = True
         self.pie_show_legend = True
 
+        # histogram
+        self.kde_bool = True
+        self.bin_size = 20
+
 
 
         
@@ -399,10 +403,14 @@ class PlotManager:
 
     def plot_box(self, df, col1, col2):
         sns.boxplot(x=df[col1], y=df[col2], showfliers=self.show_outliers)
-
+    
     def plot_hist(self, df, col1):
-        plt.hist(df[col1], bins=20, color='skyblue', edgecolor='black')
-        plt.xlabel(col1)
+        sns.histplot(df[col1], bins=self.bin_size, kde=self.kde_bool)
+
+        # Add horizontal guidelines based on y-axis tick marks
+        y_ticks = plt.gca().get_yticks()
+        for y in y_ticks:
+            plt.axhline(y=y, color='gray', linestyle='--', linewidth=0.5, alpha=0.7)
 
     def perform_stat_test(self, df, col1, col2):
         data1 = df[col1].dropna()
