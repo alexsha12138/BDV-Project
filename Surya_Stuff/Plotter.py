@@ -630,16 +630,23 @@ class PlotManager:
 
     def pairplot(self, df, numeric_columns):
         """
-        Generates a pairplot for all numerical variables in the dataset.
+        Generates a pairplot for user-specified or all numerical variables in the dataset.
 
         Parameters:
         - df: pandas DataFrame containing the dataset.
         - numeric_columns: List of numerical column names to include in the pairplot.
         """
-        if not numeric_columns:
-            raise ValueError("No numerical columns available for pairplot.")
+        # Use user-specified variables if provided
+        if hasattr(self, 'pairplot_variables') and self.pairplot_variables.strip():
+            user_variables = [var.strip() for var in self.pairplot_variables.split(",")]
+            # Validate that the variables exist in the dataset
+            valid_variables = [var for var in user_variables if var in numeric_columns]
+            if not valid_variables:
+                raise ValueError("No valid numerical variables specified for pairplot.")
+        else:
+            valid_variables = numeric_columns
 
         # Generate the pairplot
-        sns.pairplot(df[numeric_columns])
-        plt.suptitle("Pairplot of Numerical Variables", y=1.02)  # Add a title
+        sns.pairplot(df[valid_variables])
+        plt.suptitle("Pairplot of Selected Variables", y=1.02)  # Add a title
         plt.show()

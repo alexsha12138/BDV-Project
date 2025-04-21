@@ -107,7 +107,7 @@ class CSVPlotterApp:
         plot_type_label = tk.Label(controls_frame, text="Select plot type:", font=("Arial", 12), bg="#f0f0f0")
         plot_type_label.grid(row=3, column=0, sticky="w")
 
-        self.plot_type_combo = ttk.Combobox(controls_frame, state="enabled", font=("Arial", 12),
+        self.plot_type_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12),
                                             values=["Heat Map", "Pairplot"])
         self.plot_type_combo.grid(row=3, column=1, pady=5)
         self.plot_type_combo.bind("<<ComboboxSelected>>", self.plot_type_selected)
@@ -739,6 +739,40 @@ class CSVPlotterApp:
             )
             save_button.pack(pady=(20, 10))
 
+        elif self.plot_type_combo.get() == "Pairplot":
+
+            # Instruction label
+            instruction_label = tk.Label(
+                adv_window,
+                text="Enter variable names separated by commas:",
+                font=("Arial", 12),
+                bg="#f0f0f0"
+            )
+            instruction_label.pack(pady=(10, 5))
+
+            # Text box for user input
+            pairplot_entry = tk.Entry(adv_window, font=("Arial", 12), width=30)
+
+            # Pre-fill the text box with the previously saved value (if any)
+            if hasattr(self.plotter, 'pairplot_variables') and self.plotter.pairplot_variables:
+                pairplot_entry.insert(0, self.plotter.pairplot_variables)
+
+            pairplot_entry.pack(pady=(10, 20), padx=30)
+
+            # Save button
+            def save_pairplot_settings():
+                # Save the user input to the plotter object
+                self.plotter.pairplot_variables = pairplot_entry.get()
+                adv_window.destroy()  # Close the advanced settings window
+
+            save_button = tk.Button(
+                adv_window,
+                text="Save",
+                font=("Arial", 12),
+                command=save_pairplot_settings
+            )
+            save_button.pack(pady=(20, 10))
+
         elif self.plot_type_combo.get() == "Violin Plot":
             Violin_label = tk.Label(adv_window, text="Violin Plot", font=("Arial", 12), bg="#f0f0f0")
             Violin_label.pack(pady=0)
@@ -836,7 +870,7 @@ class CSVPlotterApp:
             try:
                 setattr(self.plotter, attr, cast(widget.get()))
             except Exception:
-                setattr(self.plotter, attr, 0 if cast == float else False if cast == bool else "")
+                setattr(self.plotter, attr, "")
         messagebox.showinfo("Settings Saved", confirmation_text)
 
     def update_plot_selection(self, event):
