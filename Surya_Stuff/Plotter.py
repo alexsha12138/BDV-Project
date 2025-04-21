@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 import seaborn as sns
 import scipy.stats as stats
 from scipy.stats import linregress
@@ -6,9 +7,16 @@ import pandas as pd
 from tkinter import messagebox
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
+
 class PlotManager:
     def __init__(self):
         # Default advanced settings
+
+        # Heatmap settings
+        self.heatmap_low_color = "#FFFFFF"  # white
+        self.heatmap_high_color = "#0000FF"  # blue
+        self.heatmap_cmap = None  # Will be generated from the colors
+
         # bar plots
         self.t1_bool = False
         self.t1_ref1 = 0
@@ -19,7 +27,7 @@ class PlotManager:
         self.input_cat = " "
         self.anova = False
 
-        #scatter
+        # scatter
         self.show_best_fit = True
         self.show_confidence_interval = True
         self.show_best_fit = False
@@ -27,14 +35,14 @@ class PlotManager:
         self.show_r = False
         self.show_r2 = False
 
-        #box
+        # box
         self.show_outliers = True
-        
-        #violin
+
+        # violin
         self.anova_bool = True
 
         # pie chart
-        self.pie_display_option = "count"   # "count", "percentage", "both", "neither"
+        self.pie_display_option = "count"  # "count", "percentage", "both", "neither"
         self.pie_show_labels = True
         self.pie_show_legend = True
 
@@ -42,10 +50,12 @@ class PlotManager:
         self.kde_bool = True
         self.bin_size = 20
 
+        #line graph
+        self.line_color = "#1f77b4"  # Default matplotlib blue
+        self.marker_color = "#ff7f0e"  # Default matplotlib orange
 
-
-        
-    def plot(self, df, plot_type, col1=None, col2=None, col3=None, xres=1280, yres=720, title=None, xlabel=None, ylabel=None):
+    def plot(self, df, plot_type, col1=None, col2=None, col3=None, xres=1280, yres=720, title=None, xlabel=None,
+             ylabel=None):
         # Convert pixel resolution to inches (DPI is typically 100)
         dpi = 100
         width = xres / dpi
@@ -54,18 +64,19 @@ class PlotManager:
 
         try:
             if plot_type == "Bar":
-                if pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and col3==None:
+                if pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and col3 == None:
                     # Call the specialized two-numeric-column bar plot
                     self.plot_bar_2_num(df, col1, col2,
-                        t1_bool=self.t1_bool,
-                        t1_ref1=self.t1_ref1,
-                        t1_ref2=self.t1_ref2,
-                        t2_bool=self.t2_bool)
-                elif pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and pd.api.types.is_numeric_dtype(df[col3]):
+                                        t1_bool=self.t1_bool,
+                                        t1_ref1=self.t1_ref1,
+                                        t1_ref2=self.t1_ref2,
+                                        t2_bool=self.t2_bool)
+                elif pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(
+                        df[col2]) and pd.api.types.is_numeric_dtype(df[col3]):
                     self.plot_bar_3_num(df, col1, col2, col3, anova_bool=self.anova_bool)
                 elif pd.api.types.is_string_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]):
-                    self.plot_bar_cat_num(df, col1, col2, 
-                                          input_cat=self.input_cat, 
+                    self.plot_bar_cat_num(df, col1, col2,
+                                          input_cat=self.input_cat,
                                           anova_bool=self.anova_bool)
 
             elif plot_type == "Scatter":
@@ -111,7 +122,7 @@ class PlotManager:
 
         except Exception as e:
             messagebox.showerror("Plot Error", f"Failed to generate plot:\n{e}")
-    
+
     def plot_bar_cat_num(self, df, col1, col2, input_cat, anova_bool):
         if input_cat.strip() == "":  # Check if input_cat is empty or contains only whitespace
             # No filtering, use the entire DataFrame
@@ -136,6 +147,12 @@ class PlotManager:
             avg_df = filtered_df.groupby(col1)[col2].mean().reset_index()
             avg_df.columns = [col1, f"Average {col2}"]
 
+            # Sort by mean
+            avg_df = avg_df.sort_values(by=f"Average {col2}", ascending=False)
+
+            # Reorder input_list_raw to match sorted order
+            sorted_categories = avg_df[col1].tolist()
+
         # Drop rows with NaN or Inf values in the relevant columns
         avg_df = avg_df.replace([float('inf'), float('-inf')], float('nan')).dropna()
 
@@ -150,11 +167,57 @@ class PlotManager:
         for y in y_ticks:
             plt.axhline(y=y, color='gray', linestyle='--', linewidth=0.5, alpha=0.7)
 
-        plt.title(f'Average {col2} by {col1}')
-        plt.ylabel(f'Average {col2}')
-        plt.xlabel(col1.capitalize())
-        plt.tight_layout()
+        # Annotate the plot with p-values if ANOVA is selected
+        if anova_bool:
+            if input_cat.strip() == "":
+                # If no input is provided, use all categories
+                unique_categories = df[col1].unique()
+                if len(unique_categories) == 2:
+                    # Perform t-test for two groups
+                    group1 = df[df[col1] == unique_categories[0]][col2]
+                    group2 = df[df[col1] == unique_categories[1]][col2]
+                    t2_t, t2_p = stats.ttest_ind(group1, group2, equal_var=False)
 
+                    # Annotate t-test results
+                    self.annotate_t_test_results(
+                        group1, group2,
+                        t1_bool=False, t2_bool=True,
+                        t1_ref1=0, t1_ref2=0,
+                        t2_p=t2_p
+                    )
+                elif len(unique_categories) > 2:
+                    # Restructure the DataFrame for ANOVA
+                    anova_df = pd.DataFrame()
+                    for category in unique_categories:
+                        anova_df[category] = df[df[col1] == category][col2].reset_index(drop=True)
+                    print(anova_df.head())
+                    anova_df = anova_df.dropna(how="any")
+                    # Perform ANOVA for multiple groups using the restructured DataFrame
+                    self.annotate_anova_results(anova_df, unique_categories, use_mean=True)
+            else:
+                # If input is provided, use the filtered categories
+                if len(input_list_raw) == 2:
+                    # Perform t-test for two groups
+                    group1 = filtered_df[filtered_df[col1] == input_list_raw[0]][col2]
+                    group2 = filtered_df[filtered_df[col1] == input_list_raw[1]][col2]
+                    t2_t, t2_p = stats.ttest_ind(group1, group2, equal_var=False)
+
+                    # Annotate t-test results
+                    self.annotate_t_test_results(
+                        group1, group2,
+                        t1_bool=False, t2_bool=True,
+                        t1_ref1=0, t1_ref2=0,
+                        t2_p=t2_p
+                    )
+                elif len(input_list_raw) > 2:
+                    # Restructure the DataFrame for ANOVA
+                    anova_df = pd.DataFrame()
+                    anova_df = anova_df.dropna(how="any")
+                    for category in input_list_raw:
+                        anova_df[category] = filtered_df[filtered_df[col1] == category][col2].reset_index(drop=True)
+                    print(anova_df.head())
+                    # Perform ANOVA for multiple groups using the restructured DataFrame
+                    self.annotate_anova_results(anova_df, sorted_categories, use_mean=True)
 
     def plot_bar_2_num(self, df, col1, col2, t1_bool, t1_ref1, t1_ref2, t2_bool):
         titles = [col1, col2]
@@ -175,7 +238,6 @@ class PlotManager:
         # Annotate t-test results
         self.annotate_t_test_results(var1, var2, t1_bool, t2_bool, t1_ref1, t1_ref2, t2_p)
 
-    
     def plot_bar_3_num(self, df, col1, col2, col3, anova_bool):
         titles = [col1, col2, col3]
         means = {col: df[col].mean() for col in titles}
@@ -199,33 +261,50 @@ class PlotManager:
         slope, intercept, r_value, p_value, std_err = linregress(df[col1], df[col2])
 
         if self.show_best_fit:
-            
             self.line_equation = f"y = {slope:.2f}x + {intercept:.2f}"  # Store the equation
-            sns.regplot(x=col1, y=col2, data=df, ci=95 if self.show_confidence_interval else None, scatter=False, line_kws={"color": "red"})
-        
+            sns.regplot(x=col1, y=col2, data=df, ci=95 if self.show_confidence_interval else None, scatter=False,
+                        line_kws={"color": "red"})
+
         if self.show_equation and hasattr(self, "line_equation"):
             plt.text(
-            x=df[col1].min() + 0.1,  # Position near the mean of x
-            y=df[col2].max(),   # Position near the max of y
-            s=self.line_equation,
-            color="red",
-            fontsize=10,
-            bbox=dict(facecolor="white", alpha=0.5, edgecolor="none")
+                x=df[col1].min() + 0.1,  # Position near the mean of x
+                y=df[col2].max(),  # Position near the max of y
+                s=self.line_equation,
+                color="red",
+                fontsize=10,
+                bbox=dict(facecolor="white", alpha=0.5, edgecolor="none")
             )
 
         if self.show_r:
             plt.text(x=df[col1].min() + 0.1, y=df[col2].max() - (df[col2].max() - df[col2].min()) * 0.05,
-            s=f"R = {r_value:.2f}", color="red", fontsize=10, 
-            bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
-        
+                     s=f"R = {r_value:.2f}", color="red", fontsize=10,
+                     bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
+
         if self.show_r2:
             r_squared = r_value ** 2
             plt.text(x=df[col1].min() + 0.1, y=df[col2].max() - (df[col2].max() - df[col2].min()) * 0.1,
-            s=f"R² = {r_squared:.2f}", color="red", fontsize=10, 
-            bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
+                     s=f"R² = {r_squared:.2f}", color="red", fontsize=10,
+                     bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
 
     def plot_line(self, df, col1, col2):
-        plt.plot(df[col1], df[col2], marker='o')
+        # Sort the DataFrame by the x-axis column (col1) in ascending order
+        sorted_df = df.sort_values(by=col1)
+
+        # If col2 is None (plotting all numerical columns against col1)
+        if col2 is None:
+            for column in df.columns:
+                if column != col1 and pd.api.types.is_numeric_dtype(df[column]):
+                    plt.plot(sorted_df[col1], sorted_df[column],
+                             marker='o',
+                             color=self.line_color,
+                             markerfacecolor=self.marker_color,
+                             label=column)
+            plt.legend()
+        else:
+            plt.plot(sorted_df[col1], sorted_df[col2],
+                     marker='o',
+                     color=self.line_color,
+                     markerfacecolor=self.marker_color)
 
     def plot_pie(self, df, col1, ax):
         counts = df[col1].value_counts()
@@ -245,7 +324,6 @@ class PlotManager:
             else:
                 return None
 
-        
         if self.pie_display_option != "neither":
             wedges, texts, autotexts = ax.pie(
                 sizes,
@@ -264,7 +342,20 @@ class PlotManager:
             ax.legend(wedges, labels, title=col1, loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
 
     def plot_heatmap(self, df):
-        sns.heatmap(df.corr(), annot=True, cmap='coolwarm', fmt=".2f")
+        # Create colormap from selected colors
+        self.heatmap_cmap = LinearSegmentedColormap.from_list(
+            "custom_heatmap",
+            [self.heatmap_low_color, self.heatmap_high_color]
+        )
+
+        numeric_df = df.select_dtypes(include=['number'])
+        if numeric_df.empty:
+            raise ValueError("No numeric data available for heatmap.")
+
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(numeric_df.corr(), annot=True, cmap=self.heatmap_cmap, fmt=".2f")
+        plt.title("Correlation Heatmap")
+        plt.show()
 
     def plot_violin(self, df, col1, col2, col3, t1_bool, t1_ref1, t1_ref2, t2_bool, anova_bool, input_cat):
         # Check if col3 is None or empty string (indicating categorical vs numerical data)
@@ -323,7 +414,8 @@ class PlotManager:
             # Drop rows with NaN values after conversion
             df = df.dropna(subset=[col1, col2] + ([col3] if col3 else []))
 
-            if pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and (col3 is None or col3 == ""):
+            if pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and (
+                    col3 is None or col3 == ""):
                 var1 = df[col1]
                 var2 = df[col2]
                 df_plot = pd.DataFrame({
@@ -359,12 +451,15 @@ class PlotManager:
                     bar_y = ylim[1] + (ylim[1] - ylim[0]) * 0.05
 
                     ax.plot([0, 1], [bar_y, bar_y], color="black", lw=1, zorder=10)
-                    ax.annotate(self.p_val_mark(p_value), xy=(0.5, bar_y + (ylim[1] - ylim[0]) * 0.05), ha="center", fontsize=12, color="black")
-                    ax.annotate(f"p = {p_value:.3e}", xy=(0.5, bar_y + (ylim[1] - ylim[0]) * 0.02), ha="center", fontsize=12, color="black")
+                    ax.annotate(self.p_val_mark(p_value), xy=(0.5, bar_y + (ylim[1] - ylim[0]) * 0.05), ha="center",
+                                fontsize=12, color="black")
+                    ax.annotate(f"p = {p_value:.3e}", xy=(0.5, bar_y + (ylim[1] - ylim[0]) * 0.02), ha="center",
+                                fontsize=12, color="black")
 
                     ax.set_ylim(ylim[0], bar_y + (ylim[1] - ylim[0]) * 0.1)
 
-            elif pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and pd.api.types.is_numeric_dtype(df[col3]):
+            elif pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(
+                    df[col2]) and pd.api.types.is_numeric_dtype(df[col3]):
                 df_plot = pd.DataFrame({
                     "Value": pd.concat([df[col1], df[col2], df[col3]], ignore_index=True),
                     "Group": [col1] * len(df[col1]) + [col2] * len(df[col2]) + [col3] * len(df[col3])
@@ -396,14 +491,16 @@ class PlotManager:
                         elif idx == 2:
                             max_value += 2 * offset
 
-                        ax.plot([i, i, j, j], [max_value + 7, max_value + 7.5, max_value + 7.5, max_value + 7], color="black", lw=1, zorder=10)
+                        ax.plot([i, i, j, j], [max_value + 7, max_value + 7.5, max_value + 7.5, max_value + 7],
+                                color="black", lw=1, zorder=10)
                         ax.plot([i, j], [max_value + 7.5, max_value + 7.5], color="black", lw=1, zorder=10)
 
-                        ax.annotate(f"p = {p_val:.3e}", xy=((i + j) / 2, max_value + 10), ha="center", fontsize=12, color="black")
+                        ax.annotate(f"p = {p_val:.3e}", xy=((i + j) / 2, max_value + 10), ha="center", fontsize=12,
+                                    color="black")
 
     def plot_box(self, df, col1, col2):
         sns.boxplot(x=df[col1], y=df[col2], showfliers=self.show_outliers)
-    
+
     def plot_hist(self, df, col1):
         sns.histplot(df[col1], bins=self.bin_size, kde=self.kde_bool)
 
@@ -429,14 +526,13 @@ class PlotManager:
             return ("*")
         else:
             return ("")
-        
-    def round_num (self, num):
 
+    def round_num(self, num):
         if num < 0.001 or num > 1000:
             return f"{num:.2e}"
         else:
             return f"{num:.2f}"
-        
+
     def annotate_anova_results(self, df, variables, use_mean=True):
         """
         Annotates ANOVA results and Tukey HSD pairwise comparisons on a bar plot.
@@ -454,7 +550,8 @@ class PlotManager:
         })
 
         # Sort variables by their mean or max value in descending order
-        sorted_variables = sorted(variables, key=lambda var: df[var].mean() if use_mean else df[var].max(), reverse=True)
+        sorted_variables = sorted(variables, key=lambda var: df[var].mean() if use_mean else df[var].max(),
+                                  reverse=True)
         sorted_indices = {var: idx for idx, var in enumerate(sorted_variables)}
 
         # Perform ANOVA
@@ -481,13 +578,14 @@ class PlotManager:
             max_value += max_value * offset
 
             # Draw a horizontal line/bar for the comparison
-            plt.plot([i, i, j, j], [max_value, max_value * 1.01, max_value * 1.01, max_value], color="black", lw=1, zorder=10)
+            plt.plot([i, i, j, j], [max_value, max_value * 1.01, max_value * 1.01, max_value], color="black", lw=1,
+                     zorder=10)
             plt.plot([i, j], [max_value * 1.01, max_value * 1.01], color="black", lw=1, zorder=10)
 
             # Add the p-value annotation for this comparison
             plt.annotate(f"p = {p_val:.3e}", xy=((i + j) / 2, max_value * 1.02),
-                        ha="center", fontsize=12, color="black")
-    
+                         ha="center", fontsize=12, color="black")
+
     def annotate_t_test_results(self, var1, var2, t1_bool, t2_bool, t1_ref1, t1_ref2, t2_p):
         """
         Annotates t-test results on a bar plot.
@@ -508,12 +606,17 @@ class PlotManager:
             _, var2_p = stats.ttest_1samp(var2, t1_ref2)
 
             # Annotate one-sample t-test results with dynamic spacing
-            spacing_factor = 0.03 + 0.02 * (var1.mean() / var2.mean() if var1.mean() > var2.mean() else var2.mean() / var1.mean())
-            plt.text(0, var1.mean() * (1 + spacing_factor), self.p_val_mark(var1_p), ha="center", va="bottom", fontsize=14)
-            plt.text(1, var2.mean() * (1 + spacing_factor), self.p_val_mark(var2_p), ha="center", va="bottom", fontsize=14)
+            spacing_factor = 0.03 + 0.02 * (
+                var1.mean() / var2.mean() if var1.mean() > var2.mean() else var2.mean() / var1.mean())
+            plt.text(0, var1.mean() * (1 + spacing_factor), self.p_val_mark(var1_p), ha="center", va="bottom",
+                     fontsize=14)
+            plt.text(1, var2.mean() * (1 + spacing_factor), self.p_val_mark(var2_p), ha="center", va="bottom",
+                     fontsize=14)
 
-            plt.text(0, var1.mean() * (1 + spacing_factor / 2), f"P: {self.round_num(var1_p)}", ha="center", va="bottom", fontsize=12)
-            plt.text(1, var2.mean() * (1 + spacing_factor / 2), f"P: {self.round_num(var2_p)}", ha="center", va="bottom", fontsize=12)
+            plt.text(0, var1.mean() * (1 + spacing_factor / 2), f"P: {self.round_num(var1_p)}", ha="center",
+                     va="bottom", fontsize=12)
+            plt.text(1, var2.mean() * (1 + spacing_factor / 2), f"P: {self.round_num(var2_p)}", ha="center",
+                     va="bottom", fontsize=12)
 
         if t2_bool:
             # Annotate two-sample t-test results
