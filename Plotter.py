@@ -398,6 +398,61 @@ class PlotManager:
                 # Plot the violin plot for filtered categories
                 sns.violinplot(data=filtered_df, x=col1, y=col2, palette='pastel', inner='box')
 
+            if anova_bool:
+                if input_cat.strip() == "":
+                    # If no input is provided, use all categories
+                    unique_categories = df[col1].unique()
+                    if len(unique_categories) == 2:
+                        # Perform t-test for two groups
+                        group1 = df[df[col1] == unique_categories[0]][col2]
+                        group2 = df[df[col1] == unique_categories[1]][col2]
+                        t2_t, t2_p = stats.ttest_ind(group1, group2, equal_var=False)
+
+                        # Annotate t-test results
+                        self.annotate_t_test_results(
+                            group1, group2,
+                            t1_bool=False, t2_bool=True,
+                            t1_ref1=0, t1_ref2=0,
+                            t2_p=t2_p
+                        )
+                    elif len(unique_categories) > 2:
+                        # Restructure the DataFrame for ANOVA
+                        anova_df = pd.DataFrame()
+                        for category in unique_categories:
+                            anova_df[category] = df[df[col1] == category][col2].reset_index(drop=True)
+                        
+
+                        anova_df_max = anova_df.max().max()
+
+                        anova_df = anova_df.dropna(how="any")
+                        print(anova_df_max)
+                        # Perform ANOVA for multiple groups using the restructured DataFrame
+                        self.annotate_anova_results(anova_df, unique_categories, use_mean=False, anova_df_max=anova_df_max)
+                else:
+                    # If input is provided, use the filtered categories
+                    if len(input_list_raw) == 2:
+                        # Perform t-test for two groups
+                        group1 = filtered_df[filtered_df[col1] == input_list_raw[0]][col2]
+                        group2 = filtered_df[filtered_df[col1] == input_list_raw[1]][col2]
+                        t2_t, t2_p = stats.ttest_ind(group1, group2, equal_var=False)
+
+                        # Annotate t-test results
+                        self.annotate_t_test_results(
+                            group1, group2,
+                            t1_bool=False, t2_bool=True,
+                            t1_ref1=0, t1_ref2=0,
+                            t2_p=t2_p
+                        )
+                    elif len(input_list_raw) > 2:
+                        # Restructure the DataFrame for ANOVA
+                        anova_df = pd.DataFrame()
+                        anova_df = anova_df.dropna(how="any")
+                        for category in input_list_raw:
+                            anova_df[category] = filtered_df[filtered_df[col1] == category][col2].reset_index(drop=True)
+                        print(anova_df.head())
+                        # Perform ANOVA for multiple groups using the restructured DataFrame
+                        self.annotate_anova_results(anova_df, sorted_categories, use_mean=False)
+
             plt.title(f'Distribution of {col2} by {col1}')
             plt.ylabel(f'{col2}')
             plt.xlabel(col1.capitalize())
@@ -494,6 +549,7 @@ class PlotManager:
                         ax.plot([i, i, j, j], [y_max, y_max + 0.5, y_max + 0.5, y_max], color="black", lw=1)
                         ax.annotate(f"p = {p_val:.3e}", xy=((i + j) / 2, y_max + 0.6),
                                     ha="center", fontsize=11, color="black")
+                        
 
     def plot_box(self, df, col1, col2):
         sns.boxplot(x=df[col1], y=df[col2], showfliers=self.show_outliers)
@@ -530,7 +586,7 @@ class PlotManager:
         else:
             return f"{num:.2f}"
 
-    def annotate_anova_results(self, df, variables, use_mean=True):
+    def annotate_anova_results(self, df, variables, use_mean=True, anova_df_max=None):
         """
         Annotates ANOVA results and Tukey HSD pairwise comparisons on a bar plot.
 
@@ -568,10 +624,10 @@ class PlotManager:
             p_val = p_values[idx]
 
             # Get the maximum value to place the p-value bar
-            max_value = max([df[var].mean() if use_mean else df[var].max() for var in sorted_variables])
-
+            max_value = max([df[var].mean() for var in sorted_variables]) if use_mean else anova_df_max
+            print("Max value:", max_value)
             # Adjust vertical offset for each pair to prevent overlap
-            offset = 0.045 * (idx + 1)  # Incremental offset for each pair
+            offset = 0.065 * (idx + 1)  # Incremental offset for each pair
             max_value += max_value * offset
 
             # Draw a horizontal line/bar for the comparison
