@@ -561,7 +561,7 @@ class PlotManager:
 
                     # ---- Tukey HSD test ----
                     tukey = pairwise_tukeyhsd(endog=df_plot["Value"], groups=df_plot["Group"], alpha=0.05)
-                    print(tukey.summary())
+                    # print(tukey.summary())
 
                     # ---- Annotate plot with p-values ----
                     pairs = [(0, 1), (1, 2), (0, 2)]

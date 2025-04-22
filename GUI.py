@@ -347,12 +347,35 @@ class CSVPlotterApp:
         plot_type = self.plot_type_combo.get()
         col1 = self.column1_combo.get()
         col2 = self.column2_combo.get()
+        col3 = self.column3_combo.get()
 
         if plot_type == "Scatter" and col1 and col2:
             from scipy.stats import linregress
             slope, intercept, r_value, p_value, std_err = linregress(self.df[col1], self.df[col2])
             equation = f"y = {slope:.2f}x + {intercept:.2f}"
             messagebox.showinfo("Line of Best Fit", f"Equation: {equation}\nR: {r_value:.2f}\nR²: {r_value ** 2:.2f}")
+        
+        elif plot_type == "Violin Plot" and col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:            
+            
+            import scipy.stats as stats
+            from statsmodels.stats.multicomp import pairwise_tukeyhsd
+            
+            # Calculate stats
+            anova_result = stats.f_oneway(self.df[col1], self.df[col2], self.df[col3])
+            p_value_anova = anova_result.pvalue
+
+            # Prepare data for Tukey HSD
+            values = pd.concat([self.df[col1], self.df[col2], self.df[col3]], ignore_index=True)
+            groups = [col1] * len(self.df[col1]) + [col2] * len(self.df[col2]) + [col3] * len(self.df[col3])
+            df_plot = pd.DataFrame({"Value": values, "Group": groups})
+
+            # Tukey HSD
+            tukey = pairwise_tukeyhsd(endog=df_plot["Value"], groups=df_plot["Group"], alpha=0.05)
+
+            # Show results in messagebox
+            result_str = f"ANOVA p-value: {p_value_anova:.4e}\n\nTukey HSD Summary:\n{tukey.summary().as_text()}"
+            messagebox.showinfo("Statistical Results", result_str)
+
         elif plot_type == "Box Plot" and col1 and col2:
             results = []
 
