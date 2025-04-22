@@ -256,9 +256,33 @@ class PlotManager:
         if anova_bool:
             self.annotate_anova_results(df, sorted_titles, use_mean=True)
 
-    def plot_scatter(self, df, col1, col2):
-        sns.scatterplot(x=col1, y=col2, data=df)
+    def plot_scatter(self, df, col1, col2, col3=None):
+        # Plot col2 on the primary y-axis using Seaborn
+        sns.scatterplot(data=df, x=col1, y=col2, color="tab:blue", label=col2)
         slope, intercept, r_value, p_value, std_err = linregress(df[col1], df[col2])
+
+        # Create a secondary y-axis if col3 is provided
+        if col3:
+            ax1 = plt.gca()  # Get the current axes for the primary y-axis
+            ax2 = ax1.twinx()  # Create a secondary y-axis
+            sns.scatterplot(data=df, x=col1, y=col3, color="tab:orange", label=col3, ax=ax2)
+
+            # Set labels for the secondary y-axis
+            ax2.set_ylabel(col3, color="tab:orange")
+            ax2.tick_params(axis="y", labelcolor="tab:orange")
+
+             # Combine legends from both axes
+            handles1, labels1 = ax1.get_legend_handles_labels()  # Get legend handles and labels from ax1
+            handles2, labels2 = ax2.get_legend_handles_labels()  # Get legend handles and labels from ax2
+            ax2.legend(handles=handles1 + handles2, labels=labels1 + labels2, loc="upper right")  # Combine legends
+        else:
+            # Add legend for a single y-variable
+            plt.legend(loc="upper right")
+
+        # Set labels for the primary y-axis and x-axis
+        plt.xlabel(col1)
+        plt.ylabel(col2, color="tab:blue")
+        plt.tick_params(axis="y", labelcolor="tab:blue")
 
         if self.show_best_fit:
             self.line_equation = f"y = {slope:.2f}x + {intercept:.2f}"  # Store the equation

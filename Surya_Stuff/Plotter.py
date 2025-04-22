@@ -259,6 +259,7 @@ class PlotManager:
     def plot_scatter(self, df, col1, col2, col3=None):
         # Plot col2 on the primary y-axis using Seaborn
         sns.scatterplot(data=df, x=col1, y=col2, color="tab:blue", label=col2)
+        slope, intercept, r_value, p_value, std_err = linregress(df[col1], df[col2])
 
         # Create a secondary y-axis if col3 is provided
         if col3:
@@ -270,13 +271,48 @@ class PlotManager:
             ax2.set_ylabel(col3, color="tab:orange")
             ax2.tick_params(axis="y", labelcolor="tab:orange")
 
+             # Combine legends from both axes
+            handles1, labels1 = ax1.get_legend_handles_labels()  # Get legend handles and labels from ax1
+            handles2, labels2 = ax2.get_legend_handles_labels()  # Get legend handles and labels from ax2
+            ax2.legend(handles=handles1 + handles2, labels=labels1 + labels2, loc="upper right")  # Combine legends
+        else:
+            # Add legend for a single y-variable
+            plt.legend(loc="upper right")
+
         # Set labels for the primary y-axis and x-axis
         plt.xlabel(col1)
         plt.ylabel(col2, color="tab:blue")
         plt.tick_params(axis="y", labelcolor="tab:blue")
 
-        # Add legends
-        plt.legend(loc="upper left")
+        if self.show_best_fit:
+            self.line_equation = f"y = {slope:.2f}x + {intercept:.2f}"  # Store the equation
+            sns.regplot(x=col1, y=col2, data=df, ci=95 if self.show_confidence_interval else None, scatter=False,
+                        line_kws={"color": "red"})
+            
+        x_pos = df[col1].min() + (df[col1].max() - df[col1].min()) * 0.02  # Slightly offset from the left
+        y_pos = df[col2].max() - (df[col2].max() - df[col2].min()) * 0.02 
+
+        if self.show_equation and hasattr(self, "line_equation"):
+            plt.text(
+                x=x_pos,  
+                y=y_pos, 
+                s=self.line_equation,
+                color="red",
+                fontsize=10,
+                bbox=dict(facecolor="white", alpha=0.5, edgecolor="none")
+            )
+
+        if self.show_r:
+            plt.text(x=x_pos, y=y_pos - (df[col2].max() - df[col2].min()) * 0.05,
+                     s=f"R = {r_value:.2f}", color="red", fontsize=10,
+                     bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
+
+        if self.show_r2:
+            r_squared = r_value ** 2
+            plt.text(x=x_pos, y=y_pos - (df[col2].max() - df[col2].min()) * 0.1,
+                     s=f"R² = {r_squared:.2f}", color="red", fontsize=10,
+                     bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
+
 
 
     def plot_line(self, df, col1, col2):
