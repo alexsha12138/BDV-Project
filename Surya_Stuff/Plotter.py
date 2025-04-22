@@ -414,6 +414,7 @@ class PlotManager:
             # Drop rows with NaN values after conversion
             df = df.dropna(subset=[col1, col2] + ([col3] if col3 else []))
 
+
             if pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and (
                     col3 is None or col3 == ""):
                 var1 = df[col1]
@@ -440,12 +441,13 @@ class PlotManager:
                     ax.text(0, y_star, self.p_val_mark(var1_p), ha="center", va="bottom", fontsize=12)
                     ax.text(1, y_star, self.p_val_mark(var2_p), ha="center", va="bottom", fontsize=12)
 
-                    ax.text(0, y_pval, f"P: {self.round_num(var1_p)}", ha="center", va="bottom", fontsize=10)
-                    ax.text(1, y_pval, f"P: {self.round_num(var2_p)}", ha="center", va="bottom", fontsize=10)
+                    ax.text(0, y_pval, f"P: {var1_p:.2e}", ha="center", va="bottom", fontsize=10)
+                    ax.text(1, y_pval, f"P: {var2_p:.2e}", ha="center", va="bottom", fontsize=10)
 
                     ax.set_ylim(ylim[0], y_star + (ylim[1] - ylim[0]) * 0.025)
+
                 if t2_bool:
-                    t_stat, p_value = stats.ttest_rel(var1, var2)
+                    t_stat, p_value = stats.ttest_ind(var1, var2)
 
                     ylim = ax.get_ylim()
                     bar_y = ylim[1] + (ylim[1] - ylim[0]) * 0.05
@@ -453,7 +455,7 @@ class PlotManager:
                     ax.plot([0, 1], [bar_y, bar_y], color="black", lw=1, zorder=10)
                     ax.annotate(self.p_val_mark(p_value), xy=(0.5, bar_y + (ylim[1] - ylim[0]) * 0.05), ha="center",
                                 fontsize=12, color="black")
-                    ax.annotate(f"p = {p_value:.3e}", xy=(0.5, bar_y + (ylim[1] - ylim[0]) * 0.02), ha="center",
+                    ax.annotate(f"p = {p_value:.2e}", xy=(0.5, bar_y + (ylim[1] - ylim[0]) * 0.02), ha="center",
                                 fontsize=12, color="black")
 
                     ax.set_ylim(ylim[0], bar_y + (ylim[1] - ylim[0]) * 0.1)
@@ -475,28 +477,23 @@ class PlotManager:
                     anova_result = stats.f_oneway(df[col1], df[col2], df[col3])
                     p_value_anova = anova_result.pvalue
 
-                    pairwise_result = pairwise_tukeyhsd(df_plot['Value'], df_plot['Group'], alpha=0.05)
-                    summary_data = pairwise_result.summary().data[1:]
-                    p_values = [row[4] for row in summary_data]
+                    # ---- Tukey HSD test ----
+                    tukey = pairwise_tukeyhsd(endog=df_plot["Value"], groups=df_plot["Group"], alpha=0.05)
+                    print(tukey.summary())
 
+                    # ---- Annotate plot with p-values ----
                     pairs = [(0, 1), (1, 2), (0, 2)]
-                    offset = 40
+                    offset = 5
+                    summary_data = tukey.summary().data[1:]
+                    p_values = [row[3] for row in summary_data]
 
                     for idx, (i, j) in enumerate(pairs):
                         p_val = p_values[idx]
-                        max_value = max(df[col1].max(), df[col2].max(), df[col3].max())
-
-                        if idx == 1:
-                            max_value += offset
-                        elif idx == 2:
-                            max_value += 2 * offset
-
-                        ax.plot([i, i, j, j], [max_value + 7, max_value + 7.5, max_value + 7.5, max_value + 7],
-                                color="black", lw=1, zorder=10)
-                        ax.plot([i, j], [max_value + 7.5, max_value + 7.5], color="black", lw=1, zorder=10)
-
-                        ax.annotate(f"p = {p_val:.3e}", xy=((i + j) / 2, max_value + 10), ha="center", fontsize=12,
-                                    color="black")
+                        y_max = df_plot["Value"].max() + offset * (idx + 1)
+                        
+                        ax.plot([i, i, j, j], [y_max, y_max + 0.5, y_max + 0.5, y_max], color="black", lw=1)
+                        ax.annotate(f"p = {p_val:.3e}", xy=((i + j) / 2, y_max + 0.6),
+                                    ha="center", fontsize=11, color="black")
 
     def plot_box(self, df, col1, col2):
         sns.boxplot(x=df[col1], y=df[col2], showfliers=self.show_outliers)
