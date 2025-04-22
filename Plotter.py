@@ -264,11 +264,14 @@ class PlotManager:
             self.line_equation = f"y = {slope:.2f}x + {intercept:.2f}"  # Store the equation
             sns.regplot(x=col1, y=col2, data=df, ci=95 if self.show_confidence_interval else None, scatter=False,
                         line_kws={"color": "red"})
+            
+        x_pos = df[col1].min() + (df[col1].max() - df[col1].min()) * 0.02  # Slightly offset from the left
+        y_pos = df[col2].max() - (df[col2].max() - df[col2].min()) * 0.02 
 
         if self.show_equation and hasattr(self, "line_equation"):
             plt.text(
-                x=df[col1].min() + 0.1,  # Position near the mean of x
-                y=df[col2].max(),  # Position near the max of y
+                x=x_pos,  
+                y=y_pos, 
                 s=self.line_equation,
                 color="red",
                 fontsize=10,
@@ -276,13 +279,13 @@ class PlotManager:
             )
 
         if self.show_r:
-            plt.text(x=df[col1].min() + 0.1, y=df[col2].max() - (df[col2].max() - df[col2].min()) * 0.05,
+            plt.text(x=x_pos, y=y_pos - (df[col2].max() - df[col2].min()) * 0.05,
                      s=f"R = {r_value:.2f}", color="red", fontsize=10,
                      bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
 
         if self.show_r2:
             r_squared = r_value ** 2
-            plt.text(x=df[col1].min() + 0.1, y=df[col2].max() - (df[col2].max() - df[col2].min()) * 0.1,
+            plt.text(x=x_pos, y=y_pos - (df[col2].max() - df[col2].min()) * 0.1,
                      s=f"R² = {r_squared:.2f}", color="red", fontsize=10,
                      bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
 
