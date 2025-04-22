@@ -80,7 +80,7 @@ class PlotManager:
                                           anova_bool=self.anova_bool)
 
             elif plot_type == "Scatter":
-                self.plot_scatter(df, col1, col2)
+                self.plot_scatter(df, col1, col2, col3)
             elif plot_type == "Line":
                 self.plot_line(df, col1, col2)
             elif plot_type == "Pie Chart":
@@ -256,38 +256,28 @@ class PlotManager:
         if anova_bool:
             self.annotate_anova_results(df, sorted_titles, use_mean=True)
 
-    def plot_scatter(self, df, col1, col2):
-        sns.scatterplot(x=col1, y=col2, data=df)
-        slope, intercept, r_value, p_value, std_err = linregress(df[col1], df[col2])
+    def plot_scatter(self, df, col1, col2, col3=None):
+        # Plot col2 on the primary y-axis using Seaborn
+        sns.scatterplot(data=df, x=col1, y=col2, color="tab:blue", label=col2)
 
-        if self.show_best_fit:
-            self.line_equation = f"y = {slope:.2f}x + {intercept:.2f}"  # Store the equation
-            sns.regplot(x=col1, y=col2, data=df, ci=95 if self.show_confidence_interval else None, scatter=False,
-                        line_kws={"color": "red"})
-            
-        x_pos = df[col1].min() + (df[col1].max() - df[col1].min()) * 0.02  # Slightly offset from the left
-        y_pos = df[col2].max() - (df[col2].max() - df[col2].min()) * 0.02 
+        # Create a secondary y-axis if col3 is provided
+        if col3:
+            ax1 = plt.gca()  # Get the current axes for the primary y-axis
+            ax2 = ax1.twinx()  # Create a secondary y-axis
+            sns.scatterplot(data=df, x=col1, y=col3, color="tab:orange", label=col3, ax=ax2)
 
-        if self.show_equation and hasattr(self, "line_equation"):
-            plt.text(
-                x=x_pos,  
-                y=y_pos, 
-                s=self.line_equation,
-                color="red",
-                fontsize=10,
-                bbox=dict(facecolor="white", alpha=0.5, edgecolor="none")
-            )
+            # Set labels for the secondary y-axis
+            ax2.set_ylabel(col3, color="tab:orange")
+            ax2.tick_params(axis="y", labelcolor="tab:orange")
 
-        if self.show_r:
-            plt.text(x=x_pos, y=y_pos - (df[col2].max() - df[col2].min()) * 0.05,
-                     s=f"R = {r_value:.2f}", color="red", fontsize=10,
-                     bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
+        # Set labels for the primary y-axis and x-axis
+        plt.xlabel(col1)
+        plt.ylabel(col2, color="tab:blue")
+        plt.tick_params(axis="y", labelcolor="tab:blue")
 
-        if self.show_r2:
-            r_squared = r_value ** 2
-            plt.text(x=x_pos, y=y_pos - (df[col2].max() - df[col2].min()) * 0.1,
-                     s=f"R² = {r_squared:.2f}", color="red", fontsize=10,
-                     bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
+        # Add legends
+        plt.legend(loc="upper left")
+
 
     def plot_line(self, df, col1, col2):
         # Sort the DataFrame by the x-axis column (col1) in ascending order

@@ -891,11 +891,11 @@ class CSVPlotterApp:
             elif col1 in self.numeric_columns and col2 in self.categorical_columns:
                 self.plot_type_combo["values"] = [""]
             elif col1 in self.categorical_columns and col2 in self.numeric_columns:
-                self.plot_type_combo["values"] = ["Bar", "Violin Plot", "Box Plot"]
+                self.plot_type_combo["values"] = ["Bar", "Violin Plot", "Box Plot","Scatter"]
             elif col1 in self.numeric_columns and col2 in self.numeric_columns and col3 == "":
                 self.plot_type_combo["values"] = ["Scatter", "Line", "Bar", "Violin Plot", "Box Plot"]
             elif col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:
-                self.plot_type_combo["values"] = ["Bar", "Violin Plot", "Box Plot"]
+                self.plot_type_combo["values"] = ["Bar", "Violin Plot", "Box Plot", "Scatter"]
             elif col1 in self.categorical_columns and col2 == "":
                 self.plot_type_combo["values"] = ["Pie Chart"]
             elif col1 in self.categorical_columns and col2 in self.categorical_columns:
