@@ -55,12 +55,14 @@ class PlotManager:
         self.marker_color = "#ff7f0e"  # Default matplotlib orange
 
     def plot(self, df, plot_type, col1=None, col2=None, col3=None, xres=1280, yres=720, title=None, xlabel=None,
-             ylabel=None):
+             ylabel=None, title_font=14, text_font=12):
         # Convert pixel resolution to inches (DPI is typically 100)
         dpi = 100
         width = xres / dpi
         height = yres / dpi
-        fig, ax = plt.subplots(figsize=(width, height), dpi=dpi)
+        if plot_type != "Heat Map":
+            fig, ax = plt.subplots(figsize=(width, height), dpi=dpi)
+
 
         try:
             if plot_type == "Bar":
@@ -112,9 +114,9 @@ class PlotManager:
             x_label = xlabel if xlabel else col1
             y_label = ylabel if ylabel else col2
 
-            plt.title(plot_title)
-            if x_label: plt.xlabel(x_label)
-            if y_label: plt.ylabel(y_label)
+            plt.title(plot_title, fontsize=title_font)
+            if x_label: plt.xlabel(x_label, fontsize=text_font)
+            if y_label: plt.ylabel(y_label, fontsize=text_font)
 
             plt.xticks(rotation=0)
             plt.tight_layout()
@@ -122,6 +124,8 @@ class PlotManager:
 
         except Exception as e:
             messagebox.showerror("Plot Error", f"Failed to generate plot:\n{e}")
+            plt.close(fig)  # Automatically close the figure if an error occurs
+            raise e  # Re-raise the exception to handle it elsewhere
 
     def plot_bar_cat_num(self, df, col1, col2, input_cat, anova_bool):
         if input_cat.strip() == "":  # Check if input_cat is empty or contains only whitespace
@@ -193,7 +197,8 @@ class PlotManager:
                     print(anova_df.head())
                     anova_df = anova_df.dropna(how="any")
                     # Perform ANOVA for multiple groups using the restructured DataFrame
-                    self.annotate_anova_results(anova_df, unique_categories, use_mean=True)
+                    sorted_categories = avg_df.sort_values(by=f"Average {col2}", ascending=False)[col1].tolist()
+                    self.annotate_anova_results(anova_df, sorted_categories, use_mean=True)
             else:
                 # If input is provided, use the filtered categories
                 if len(input_list_raw) == 2:
@@ -254,6 +259,7 @@ class PlotManager:
             plt.axhline(y=y, color='gray', linestyle='--', linewidth=0.5, alpha=0.7)
 
         if anova_bool:
+
             self.annotate_anova_results(df, sorted_titles, use_mean=True)
 
     def plot_scatter(self, df, col1, col2, col3=None):
@@ -382,10 +388,9 @@ class PlotManager:
         plt.figure(figsize=(10, 8))
         sns.heatmap(numeric_df.corr(), annot=True, cmap=self.heatmap_cmap, fmt=".2f")
         plt.title("Correlation Heatmap")
-        plt.show()
 
     def plot_violin(self, df, col1, col2, col3, t1_bool, t1_ref1, t1_ref2, t2_bool, anova_bool, input_cat):
-        # Check if col3 is None or empty string (indicating categorical vs numerical data)
+        # Check if col1 categorical variable (indicating categorical vs numerical data)
         if pd.api.types.is_string_dtype(df[col1]):
             # if nothing is entered in the input box, use the entire DataFrame
             if input_cat.strip() == "":  # Check if input_cat is empty or contains only whitespace
@@ -440,7 +445,8 @@ class PlotManager:
                             group1, group2,
                             t1_bool=False, t2_bool=True,
                             t1_ref1=0, t1_ref2=0,
-                            t2_p=t2_p
+                            t2_p=t2_p,
+                            use_mean=False
                         )
                     elif len(unique_categories) > 2:
                         # Restructure the DataFrame for ANOVA
@@ -454,7 +460,8 @@ class PlotManager:
                         anova_df = anova_df.dropna(how="any")
                         print(anova_df_max)
                         # Perform ANOVA for multiple groups using the restructured DataFrame
-                        self.annotate_anova_results(anova_df, unique_categories, use_mean=False, anova_df_max=anova_df_max)
+                        sorted_categories = avg_df.sort_values(by=f"Average {col2}", ascending=False)[col1].tolist()
+                        self.annotate_anova_results(anova_df, sorted_categories, use_mean=False, anova_df_max=anova_df_max)
                 else:
                     # If input is provided, use the filtered categories
                     if len(input_list_raw) == 2:
@@ -468,7 +475,8 @@ class PlotManager:
                             group1, group2,
                             t1_bool=False, t2_bool=True,
                             t1_ref1=0, t1_ref2=0,
-                            t2_p=t2_p
+                            t2_p=t2_p,
+                            use_mean=False
                         )
                     elif len(input_list_raw) > 2:
                         # Restructure the DataFrame for ANOVA
@@ -478,7 +486,8 @@ class PlotManager:
                             anova_df[category] = filtered_df[filtered_df[col1] == category][col2].reset_index(drop=True)
                         print(anova_df.head())
                         # Perform ANOVA for multiple groups using the restructured DataFrame
-                        self.annotate_anova_results(anova_df, sorted_categories, use_mean=False)
+                        anova_df_max = anova_df.max().max()
+                        self.annotate_anova_results(anova_df, sorted_categories.tolist(), use_mean=False, anova_df_max=anova_df_max)
 
             plt.title(f'Distribution of {col2} by {col1}')
             plt.ylabel(f'{col2}')
@@ -496,7 +505,7 @@ class PlotManager:
             # Drop rows with NaN values after conversion
             df = df.dropna(subset=[col1, col2] + ([col3] if col3 else []))
 
-
+            # 2 numerical variables
             if pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(df[col2]) and (
                     col3 is None or col3 == ""):
                 var1 = df[col1]
@@ -542,6 +551,7 @@ class PlotManager:
 
                     ax.set_ylim(ylim[0], bar_y + (ylim[1] - ylim[0]) * 0.1)
 
+            # 3 numerical variables
             elif pd.api.types.is_numeric_dtype(df[col1]) and pd.api.types.is_numeric_dtype(
                     df[col2]) and pd.api.types.is_numeric_dtype(df[col3]):
                 df_plot = pd.DataFrame({
@@ -556,26 +566,9 @@ class PlotManager:
                 ax = sns.violinplot(data=df_plot, x="Group", y="Value", inner="box", palette="Set2")
 
                 if anova_bool:
-                    anova_result = stats.f_oneway(df[col1], df[col2], df[col3])
-                    p_value_anova = anova_result.pvalue
-
-                    # ---- Tukey HSD test ----
-                    tukey = pairwise_tukeyhsd(endog=df_plot["Value"], groups=df_plot["Group"], alpha=0.05)
-                    # print(tukey.summary())
-
-                    # ---- Annotate plot with p-values ----
-                    pairs = [(0, 1), (1, 2), (0, 2)]
-                    offset = 5
-                    summary_data = tukey.summary().data[1:]
-                    p_values = [row[3] for row in summary_data]
-
-                    for idx, (i, j) in enumerate(pairs):
-                        p_val = p_values[idx]
-                        y_max = df_plot["Value"].max() + offset * (idx + 1)
-                        
-                        ax.plot([i, i, j, j], [y_max, y_max + 0.5, y_max + 0.5, y_max], color="black", lw=1)
-                        ax.annotate(f"p = {p_val:.3e}", xy=((i + j) / 2, y_max + 0.6),
-                                    ha="center", fontsize=11, color="black")
+                    sorted_groups = group_means.index.tolist()
+                    df_max = df_plot["Value"].max()  # Get the maximum value from the DataFrame
+                    self.annotate_anova_results(df, sorted_groups, use_mean=False, anova_df_max=df_max)
                         
 
     def plot_box(self, df, col1, col2):
@@ -615,58 +608,53 @@ class PlotManager:
 
     def annotate_anova_results(self, df, variables, use_mean=True, anova_df_max=None):
         """
-        Annotates ANOVA results and Tukey HSD pairwise comparisons on a bar plot.
+        Annotates ANOVA results and Tukey HSD pairwise comparisons on a bar or violin plot.
 
         Args:
-            df (pd.DataFrame): The DataFrame containing the data.
-            variables (list): List of column names for the independent variables.
-            use_mean (bool): If True, use the mean to calculate max_value; otherwise, use max().
+            df (pd.DataFrame): Wide-format DataFrame with one column per group.
+            variables (list): Pre-sorted list of column names in plotted x-axis order.
+            use_mean (bool): Whether to use mean() to estimate vertical position (True) or provided anova_df_max (False).
+            anova_df_max (float): Max y value from original unfiltered DataFrame (used when use_mean=False).
         """
-        # Prepare data for ANOVA
-        var_data = [df[var] for var in variables]
+        from statsmodels.stats.multicomp import pairwise_tukeyhsd
+
+        # Stack data into long format
         df_plot = pd.DataFrame({
-            "Value": pd.concat(var_data, ignore_index=True),
+            "Value": pd.concat([df[var] for var in variables], ignore_index=True),
             "Group": sum([[var] * len(df[var]) for var in variables], [])
         })
 
-        # Sort variables by their mean or max value in descending order
-        sorted_variables = sorted(variables, key=lambda var: df[var].mean() if use_mean else df[var].max(),
-                                  reverse=True)
-        sorted_indices = {var: idx for idx, var in enumerate(sorted_variables)}
-
         # Perform ANOVA
-        anova_result = stats.f_oneway(*[df[var] for var in sorted_variables])
-        p_value_anova = anova_result.pvalue
+        anova_result = stats.f_oneway(*[df[var] for var in variables])
+        print("ANOVA p-value:", anova_result.pvalue)
 
-        # Perform Tukey HSD for pairwise comparisons
-        pairwise_result = pairwise_tukeyhsd(df_plot['Value'], df_plot['Group'], alpha=0.05)
-        summary_data = pairwise_result.summary().data[1:]  # Skip the header row
-        p_values = [row[4] for row in summary_data]  # Extract p-values
+        # Tukey HSD
+        tukey = pairwise_tukeyhsd(df_plot["Value"], df_plot["Group"], alpha=0.05)
+        summary_data = tukey.summary().data[1:]  # skip header
 
-        # Define the pairs (for correct x-axis positions)
-        pairs = [(sorted_indices[row[0]], sorted_indices[row[1]]) for row in summary_data]
+        # Build index map from label to plotting x-axis index
+        label_to_idx = {label: idx for idx, label in enumerate(variables)}
 
-        # Plot bars for each pairwise comparison and display p-values
-        for idx, (i, j) in enumerate(pairs):
-            p_val = p_values[idx]
+        # Annotate each pairwise comparison
+        for idx, row in enumerate(summary_data):
+            cat1, cat2, _, p_val = row[:4]
+            i = label_to_idx[cat1]
+            j = label_to_idx[cat2]
 
-            # Get the maximum value to place the p-value bar
-            max_value = max([df[var].mean() for var in sorted_variables]) if use_mean else anova_df_max
-            print("Max value:", max_value)
-            # Adjust vertical offset for each pair to prevent overlap
-            offset = 0.065 * (idx + 1)  # Incremental offset for each pair
-            max_value += max_value * offset
+            # Determine y-position for bar based on max data value
+            base = max([df[var].mean() for var in variables]) if use_mean else anova_df_max
+            offset = 0.065 * (idx + 1)
+            height = base * (1 + offset)
 
-            # Draw a horizontal line/bar for the comparison
-            plt.plot([i, i, j, j], [max_value, max_value * 1.01, max_value * 1.01, max_value], color="black", lw=1,
-                     zorder=10)
-            plt.plot([i, j], [max_value * 1.01, max_value * 1.01], color="black", lw=1, zorder=10)
-
-            # Add the p-value annotation for this comparison
-            plt.annotate(f"p = {p_val:.3e}", xy=((i + j) / 2, max_value * 1.02),
+            # Draw significance bars and p-value text
+            plt.plot([i, i, j, j], [height, height + 0.01 * base, height + 0.01 * base, height], color="black", lw=1, zorder=10)
+            plt.plot([i, j], [height + 0.01 * base, height + 0.01 * base], color="black", lw=1, zorder=10)
+            plt.annotate(f"{self.p_val_mark(p_val)} p = {p_val:.3e}", 
+                         xy=((i + j) / 2, height + 0.025 * base), 
                          ha="center", fontsize=12, color="black")
 
-    def annotate_t_test_results(self, var1, var2, t1_bool, t2_bool, t1_ref1, t1_ref2, t2_p):
+
+    def annotate_t_test_results(self, var1, var2, t1_bool, t2_bool, t1_ref1, t1_ref2, t2_p, use_mean=True):
         """
         Annotates t-test results on a bar plot.
 
@@ -678,8 +666,9 @@ class PlotManager:
             t1_ref1 (float): Reference value for the one-sample t-test for var1.
             t1_ref2 (float): Reference value for the one-sample t-test for var2.
             t2_p (float): P-value for the two-sample t-test.
+            use_mean (bool): Whether to use mean() to calculate two_bar_y. If False, use max().
         """
-        two_bar_y = max(var1.mean(), var2.mean())
+        two_bar_y = max(var1.max(), var2.max()) if not use_mean else max(var1.mean(), var2.mean())
 
         if t1_bool:
             _, var1_p = stats.ttest_1samp(var1, t1_ref1)
