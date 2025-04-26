@@ -4,6 +4,9 @@ from tkinter import filedialog, messagebox, ttk
 import pandas as pd
 import os
 from Plotter import PlotManager
+from scipy.stats import linregress
+import scipy.stats as stats
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 
 class CSVPlotterApp:
@@ -12,6 +15,28 @@ class CSVPlotterApp:
         self.root.title("CSV Plotter")
         self.root.geometry("1000x650")
         self.root.configure(bg="#f0f0f0")
+
+        style = ttk.Style()
+        style.theme_use('clam')
+        style.configure("TLabel", background="#f0f0f0", foreground="black")
+        style.configure("TFrame", background="#f0f0f0")
+        style.configure("TCombobox", fieldbackground="white", background="white", foreground="black")
+        style.configure("TEntry", fieldbackground="white", background="white", foreground="black")
+
+        style.map("TCombobox",
+            fieldbackground=[
+                ("disabled", "#d9d9d9"),   # Light gray when disabled
+                ("readonly", "white")      # White when selection is made
+            ],
+            background=[
+                ("disabled", "#d9d9d9"),   # Light gray border when disabled
+                ("readonly", "white")      # White background otherwise
+            ],
+            foreground=[
+                ("disabled", "gray"),      # Gray text when disabled
+                ("readonly", "black")      # Black text when selected
+            ]
+        )
 
         self.df = None
         self.columns = []
@@ -103,6 +128,9 @@ class CSVPlotterApp:
         self.column3_combo.grid(row=2, column=1, pady=5)
         self.column3_combo.bind("<<ComboboxSelected>>", self.update_plot_selection)
 
+
+        
+        
         # Plot type dropdown
         plot_type_label = tk.Label(controls_frame, text="Select plot type:", font=("Arial", 12), bg="#f0f0f0")
         plot_type_label.grid(row=3, column=0, sticky="w")
@@ -189,13 +217,29 @@ class CSVPlotterApp:
         )
         self.marker_color_display.pack(side=tk.LEFT, padx=5, pady=5)
 
+        # Title Font and Text Font Entry Boxes
+        font_frame = tk.Frame(controls_frame, bg="#f0f0f0")
+        font_frame.grid(row=4, column=0, columnspan=2, pady=5, sticky="w")
+
+        title_font_label = tk.Label(font_frame, text="Title Font:", font=("Arial", 12), bg="#f0f0f0")
+        title_font_label.pack(side="left", padx=(0, 5))
+        self.title_font_entry = tk.Entry(font_frame, font=("Arial", 12), width=5)
+        self.title_font_entry.insert(0, "14")  # Set default value to 14
+        self.title_font_entry.pack(side="left", padx=(0, 10))
+
+        text_font_label = tk.Label(font_frame, text="Text Font:", font=("Arial", 12), bg="#f0f0f0")
+        text_font_label.pack(side="left", padx=(0, 5))
+        self.text_font_entry = tk.Entry(font_frame, font=("Arial", 12), width=5)
+        self.text_font_entry.insert(0, "12")  # Set default value to 12
+        self.text_font_entry.pack(side="left", padx=(0, 5))
+
         # Graph info Button
         button_row = tk.Frame(controls_frame, bg="#f0f0f0")
-        button_row.grid(row=4, column=1, columnspan=2, pady=20)
+        button_row.grid(row=4, column=1, columnspan=2, pady=5, sticky="e")
 
         self.graph_info = tk.Button(button_row, text="Graph Info", font=("Arial", 12), state="normal", width=10,
-                                    command=self.graph_info)
-        self.graph_info.pack(side="left", padx=10)
+            command=self.graph_info)
+        self.graph_info.pack(side="right", padx=38)  # Increased padding on the right side
 
         # Resolution entries
         res_label = tk.Label(controls_frame, text="Resolution:", font=("Arial", 12), bg="#f0f0f0")
@@ -330,15 +374,23 @@ class CSVPlotterApp:
             xres = int(self.xres_entry.get())
             yres = int(self.yres_entry.get())
         except ValueError:
-            messagebox.showerror("Error", "Invalid resolution values!")
+            messagebox.showerror("Error", "Invalid resolution value(s)!")
             return
+        
+        try:
+            title_font = int(self.title_font_entry.get())
+            text_font = int(self.text_font_entry.get())
+        except ValueError:
+            messagebox.showerror("Error", "Invalid font size value(s)!")
+            return
+        
 
         title = self.title_entry.get()
         xlabel = self.xlabel_entry.get()
         ylabel = self.ylabel_entry.get()
 
         self.plotter.plot(self.df, plot_type, col1 if col1 else None, col2 if col2 else None, col3 if col3 else None,
-                          xres, yres, title=title, xlabel=xlabel, ylabel=ylabel)
+                          xres, yres, title=title, xlabel=xlabel, ylabel=ylabel, title_font=title_font, text_font=text_font)
 
         self.plot_done = True  # this is for updating the analyze button
         self.analyze_button.config(state="normal")
@@ -347,12 +399,32 @@ class CSVPlotterApp:
         plot_type = self.plot_type_combo.get()
         col1 = self.column1_combo.get()
         col2 = self.column2_combo.get()
+        col3 = self.column3_combo.get()
 
         if plot_type == "Scatter" and col1 and col2:
-            from scipy.stats import linregress
+            
             slope, intercept, r_value, p_value, std_err = linregress(self.df[col1], self.df[col2])
             equation = f"y = {slope:.2f}x + {intercept:.2f}"
             messagebox.showinfo("Line of Best Fit", f"Equation: {equation}\nR: {r_value:.2f}\nR²: {r_value ** 2:.2f}")
+        
+        elif plot_type == "Violin Plot" and col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:            
+            
+            # Calculate stats
+            anova_result = stats.f_oneway(self.df[col1], self.df[col2], self.df[col3])
+            p_value_anova = anova_result.pvalue
+
+            # Prepare data for Tukey HSD
+            values = pd.concat([self.df[col1], self.df[col2], self.df[col3]], ignore_index=True)
+            groups = [col1] * len(self.df[col1]) + [col2] * len(self.df[col2]) + [col3] * len(self.df[col3])
+            df_plot = pd.DataFrame({"Value": values, "Group": groups})
+
+            # Tukey HSD
+            tukey = pairwise_tukeyhsd(endog=df_plot["Value"], groups=df_plot["Group"], alpha=0.05)
+
+            # Show results in messagebox
+            result_str = f"ANOVA p-value: {p_value_anova:.4e}\n\nTukey HSD Summary:\n{tukey.summary().as_text()}"
+            messagebox.showinfo("Statistical Results", result_str)
+
         elif plot_type == "Box Plot" and col1 and col2:
             results = []
 
@@ -482,11 +554,6 @@ class CSVPlotterApp:
             Line_label = tk.Label(adv_window, text="Line Graph", font=("Arial", 12), bg="#f0f0f0")
             Line_label.pack(pady=0)
 
-            # marker
-            marker_var = tk.BooleanVar()
-            marker_checkbox = tk.Checkbutton(adv_window, text="Show Marker", variable=marker_var, font=("Arial", 12))
-            marker_checkbox.pack(pady=10)
-
         # advanced menu for bar plot with 1 categorical and 1 numerical variables
         elif self.plot_type_combo.get() == "Bar" and col1 in self.categorical_columns and col2 in self.numeric_columns:
             Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0")
@@ -511,8 +578,8 @@ class CSVPlotterApp:
                 font=("Arial", 12),
                 command=lambda: self.save_advanced_settings({
                     'input_cat': (input_cat_entry, str),
-                    'anova_bool': (anova_var, bool)
-                })
+                    'anova_bool': (anova_var, bool),
+                }, window=adv_window)
             )
 
             save_button.pack(pady=(20, 10))
@@ -556,7 +623,7 @@ class CSVPlotterApp:
                     't2_bool': (t2_marker_var, bool),
                     't1_ref1': (t1_col1_ref_entry, float),
                     't1_ref2': (t1_col2_ref_entry, float),
-                })
+                }, window=adv_window)
             )
             save_button.pack(pady=(20, 10))
 
@@ -575,7 +642,7 @@ class CSVPlotterApp:
                 font=("Arial", 12),
                 command=lambda: self.save_advanced_settings({
                     'anova_bool': (anova_bool, bool),
-                }, confirmation_text="Violin plot settings saved.")
+                }, window= adv_window, confirmation_text="Violin plot settings saved.")
             )
             save_button.pack(pady=(20, 10))
 
@@ -667,7 +734,6 @@ class CSVPlotterApp:
             save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_box_settings)
             save_button.pack(pady=(20, 10))
 
-
         elif self.plot_type_combo.get() == "Pie Chart":
             Pie_label = tk.Label(adv_window, text="Pie Chart", font=("Arial", 12), bg="#f0f0f0")
             Pie_label.pack(pady=0)
@@ -705,7 +771,7 @@ class CSVPlotterApp:
                     'pie_display_option': (display_var, str),
                     'pie_show_labels': (labels_var, bool),
                     'pie_show_legend': (legend_var, bool),
-                }, confirmation_text="Pie chart settings saved.")
+                }, window = adv_window, confirmation_text="Pie chart settings saved.")
             )
             save_button.pack(pady=(20, 10))
 
@@ -735,7 +801,7 @@ class CSVPlotterApp:
                 command=lambda: self.save_advanced_settings({
                     'bin_size': (bins_entry, int),
                     'kde_bool': (kde_var, bool),
-                }, confirmation_text="Histogram settings saved.")
+                }, window= adv_window, confirmation_text="Histogram settings saved.")
             )
             save_button.pack(pady=(20, 10))
 
@@ -790,8 +856,8 @@ class CSVPlotterApp:
                     input_cat_entry.insert(0, self.plotter.input_cat)
 
                     # Checkbox for Anova
-                    anova_var = tk.BooleanVar(value=self.plotter.t1_bool)
-                    anova_checkbox = tk.Checkbutton(adv_window, text="Perform ANOVA", variable=anova_var,
+                    anova_var = tk.BooleanVar(value=self.plotter.anova_bool)
+                    anova_checkbox = tk.Checkbutton(adv_window, text="Perform ANOVA/T-Test", variable=anova_var,
                                                     font=("Arial", 12))
                     anova_checkbox.pack(pady=10)
 
@@ -801,8 +867,8 @@ class CSVPlotterApp:
                         font=("Arial", 12),
                         command=lambda: self.save_advanced_settings({
                             'input_cat': (input_cat_entry, str),
-                            'anova': (anova_var, bool)
-                        })
+                            'anova_bool': (anova_var, bool)
+                        }, window=adv_window, confirmation_text="Violin plot settings saved.")
                     )
 
                     save_button.pack(pady=(20, 10))
@@ -844,7 +910,7 @@ class CSVPlotterApp:
                             't2_bool': (t2_marker_var, bool),
                             't1_ref1': (t1_col1_ref_entry, float),
                             't1_ref2': (t1_col2_ref_entry, float),
-                        }, confirmation_text="Violin plot settings saved.")
+                        }, window= adv_window, confirmation_text="Violin plot settings saved.")
                     )
                     save_button.pack(pady=(20, 10))
             else:
@@ -861,22 +927,34 @@ class CSVPlotterApp:
                     font=("Arial", 12),
                     command=lambda: self.save_advanced_settings({
                         'anova_bool': (anova_var, bool),
-                    }, confirmation_text="Violin plot settings saved.")
+                    }, window= adv_window, confirmation_text="Violin plot settings saved.")
                 )
                 save_button.pack(pady=(20, 10))
 
-    def save_advanced_settings(self, widget_map, confirmation_text="Advanced settings saved successfully!"):
+    def save_advanced_settings(self, widget_map, confirmation_text="Advanced settings saved successfully!", window=None):
         for attr, (widget, cast) in widget_map.items():
             try:
                 setattr(self.plotter, attr, cast(widget.get()))
             except Exception:
                 setattr(self.plotter, attr, "")
         messagebox.showinfo("Settings Saved", confirmation_text)
+        if window:
+            window.destroy()
 
     def update_plot_selection(self, event):
         col1 = self.column1_combo.get()
         col2 = self.column2_combo.get()
         col3 = self.column3_combo.get()
+
+            # Reset the plot types if everything is blank
+        if col1 == "" and col2 == "" and col3 == "":
+            self.plot_type_combo["values"] = ["Heat Map", "Pairplot"]
+            self.plot_type_combo.set("")
+            self.plot_type_combo.config(state="readonly")
+            self.plot_button.config(state="disabled")
+            self.analyze_button.config(state="disabled")
+            self.advanced_button.config(state="disabled")
+            return
 
         if col1:
             self.plot_type_combo.config(state="readonly")
@@ -891,11 +969,11 @@ class CSVPlotterApp:
             elif col1 in self.numeric_columns and col2 in self.categorical_columns:
                 self.plot_type_combo["values"] = [""]
             elif col1 in self.categorical_columns and col2 in self.numeric_columns:
-                self.plot_type_combo["values"] = ["Bar", "Violin Plot", "Box Plot","Scatter"]
+                self.plot_type_combo["values"] = ["Bar", "Violin Plot", "Box Plot"]
             elif col1 in self.numeric_columns and col2 in self.numeric_columns and col3 == "":
                 self.plot_type_combo["values"] = ["Scatter", "Line", "Bar", "Violin Plot", "Box Plot"]
             elif col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:
-                self.plot_type_combo["values"] = ["Bar", "Violin Plot", "Box Plot", "Scatter"]
+                self.plot_type_combo["values"] = ["Scatter", "Bar", "Violin Plot", "Box Plot"]
             elif col1 in self.categorical_columns and col2 == "":
                 self.plot_type_combo["values"] = ["Pie Chart"]
             elif col1 in self.categorical_columns and col2 in self.categorical_columns:
@@ -987,65 +1065,71 @@ class CSVPlotterApp:
         if plot_type == "Bar":
             info_text = (
                 "Bar Graph Info:\n\n"
-                "- A bar graph is used to compare categories of data.\n"
+                "- A bar graph is used to compare categories of data.\n\n"
                 "- X-axis: Categorical variable.\n"
-                "- Y-axis: Numerical variable.\n"
+                "- Y-axis: Numerical variable.\n\n"
                 "- Example: Sales by product category."
             )
         elif plot_type == "Scatter":
             info_text = (
                 "Scatter Plot Info:\n\n"
-                "- A scatter plot is used to show relationships between two numerical variables.\n"
+                "- A scatter plot is used to show relationships between two numerical variables.\n\n"
                 "- X-axis: Numerical variable.\n"
-                "- Y-axis: Numerical variable.\n"
+                "- Y-axis: Numerical variable.\n\n"
                 "- Example: Age vs. Income."
             )
         elif plot_type == "Line":
             info_text = (
                 "Line Graph Info:\n\n"
-                "- A line graph is used to show trends over time or continuous data.\n"
+                "- A line graph is used to show trends over time or continuous data.\n\n"
                 "- X-axis: Numerical variable (e.g., time).\n"
-                "- Y-axis: Numerical variable.\n"
+                "- Y-axis: Numerical variable.\n\n"
                 "- Example: Stock prices over time."
             )
         elif plot_type == "Pie Chart":
             info_text = (
                 "Pie Chart Info:\n\n"
-                "- A pie chart is used to show proportions of categories.\n"
-                "- Only one categorical variable is required.\n"
+                "- A pie chart is used to show proportions of categories.\n\n"
+                "- Only one categorical variable is required.\n\n"
                 "- Example: Market share by company."
             )
         elif plot_type == "Heat Map":
             info_text = (
                 "Heat Map Info:\n\n"
-                "- A heat map is used to visualize data in a matrix format with color coding.\n"
+                "- A heat map is used to visualize data in a matrix format with color coding.\n\n"
                 "- X-axis: Categorical variable.\n"
-                "- Y-axis: Categorical variable.\n"
+                "- Y-axis: Categorical variable.\n\n"
                 "- Example: Correlation matrix."
             )
         elif plot_type == "Violin Plot":
             info_text = (
                 "Violin Plot Info:\n\n"
-                "- A violin plot is used to show the distribution of numerical data across categories.\n"
+                "- A violin plot is used to show the distribution of numerical data across categories.\n\n"
                 "- X-axis: Categorical variable.\n"
-                "- Y-axis: Numerical variable.\n"
+                "- Y-axis: Numerical variable.\n\n"
                 "- Example: Test scores by class."
             )
         elif plot_type == "Box Plot":
             info_text = (
                 "Box Plot Info:\n\n"
-                "- A box plot is used to show the distribution of numerical data.\n"
+                "- A box plot is used to show the distribution of numerical data.\n\n"
                 "- X-axis: Categorical variable.\n"
-                "- Y-axis: Numerical variable.\n"
+                "- Y-axis: Numerical variable.\n\n"
                 "- Example: Salary distribution by department."
             )
         elif plot_type == "Histogram":
             info_text = (
                 "Histogram Info:\n\n"
-                "- A histogram is used to show the distribution of a single numerical variable.\n"
+                "- A histogram is used to show the distribution of a single numerical variable.\n\n"
                 "- X-axis: Numerical variable (bins).\n"
-                "- Y-axis: Frequency.\n"
+                "- Y-axis: Frequency.\n\n"
                 "- Example: Age distribution in a population."
+            )
+        elif plot_type == "Pairplot":
+            info_text = (
+                "Pairplot Info:\n\n"
+                "- A pairplot is used to visualize pairwise relationships in a dataset.\n"
+                "- Displays scatter plots for numerical variables and histograms for distributions.\n"
             )
         else:
             info_text = "Please select a valid plot type."
