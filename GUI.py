@@ -1065,65 +1065,71 @@ class CSVPlotterApp:
         if plot_type == "Bar":
             info_text = (
                 "Bar Graph Info:\n\n"
-                "- A bar graph is used to compare categories of data.\n"
+                "- A bar graph is used to compare categories of data.\n\n"
                 "- X-axis: Categorical variable.\n"
-                "- Y-axis: Numerical variable.\n"
+                "- Y-axis: Numerical variable.\n\n"
                 "- Example: Sales by product category."
             )
         elif plot_type == "Scatter":
             info_text = (
                 "Scatter Plot Info:\n\n"
-                "- A scatter plot is used to show relationships between two numerical variables.\n"
+                "- A scatter plot is used to show relationships between two numerical variables.\n\n"
                 "- X-axis: Numerical variable.\n"
-                "- Y-axis: Numerical variable.\n"
+                "- Y-axis: Numerical variable.\n\n"
                 "- Example: Age vs. Income."
             )
         elif plot_type == "Line":
             info_text = (
                 "Line Graph Info:\n\n"
-                "- A line graph is used to show trends over time or continuous data.\n"
+                "- A line graph is used to show trends over time or continuous data.\n\n"
                 "- X-axis: Numerical variable (e.g., time).\n"
-                "- Y-axis: Numerical variable.\n"
+                "- Y-axis: Numerical variable.\n\n"
                 "- Example: Stock prices over time."
             )
         elif plot_type == "Pie Chart":
             info_text = (
                 "Pie Chart Info:\n\n"
-                "- A pie chart is used to show proportions of categories.\n"
-                "- Only one categorical variable is required.\n"
+                "- A pie chart is used to show proportions of categories.\n\n"
+                "- Only one categorical variable is required.\n\n"
                 "- Example: Market share by company."
             )
         elif plot_type == "Heat Map":
             info_text = (
                 "Heat Map Info:\n\n"
-                "- A heat map is used to visualize data in a matrix format with color coding.\n"
+                "- A heat map is used to visualize data in a matrix format with color coding.\n\n"
                 "- X-axis: Categorical variable.\n"
-                "- Y-axis: Categorical variable.\n"
+                "- Y-axis: Categorical variable.\n\n"
                 "- Example: Correlation matrix."
             )
         elif plot_type == "Violin Plot":
             info_text = (
                 "Violin Plot Info:\n\n"
-                "- A violin plot is used to show the distribution of numerical data across categories.\n"
+                "- A violin plot is used to show the distribution of numerical data across categories.\n\n"
                 "- X-axis: Categorical variable.\n"
-                "- Y-axis: Numerical variable.\n"
+                "- Y-axis: Numerical variable.\n\n"
                 "- Example: Test scores by class."
             )
         elif plot_type == "Box Plot":
             info_text = (
                 "Box Plot Info:\n\n"
-                "- A box plot is used to show the distribution of numerical data.\n"
+                "- A box plot is used to show the distribution of numerical data.\n\n"
                 "- X-axis: Categorical variable.\n"
-                "- Y-axis: Numerical variable.\n"
+                "- Y-axis: Numerical variable.\n\n"
                 "- Example: Salary distribution by department."
             )
         elif plot_type == "Histogram":
             info_text = (
                 "Histogram Info:\n\n"
-                "- A histogram is used to show the distribution of a single numerical variable.\n"
+                "- A histogram is used to show the distribution of a single numerical variable.\n\n"
                 "- X-axis: Numerical variable (bins).\n"
-                "- Y-axis: Frequency.\n"
+                "- Y-axis: Frequency.\n\n"
                 "- Example: Age distribution in a population."
+            )
+        elif plot_type == "Pairplot":
+            info_text = (
+                "Pairplot Info:\n\n"
+                "- A pairplot is used to visualize pairwise relationships in a dataset.\n"
+                "- Displays scatter plots for numerical variables and histograms for distributions.\n"
             )
         else:
             info_text = "Please select a valid plot type."
