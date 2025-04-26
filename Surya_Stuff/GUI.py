@@ -41,6 +41,15 @@ class CSVPlotterApp:
             ]
         )
 
+        # Define a style for ttk.Button with sharp edges
+        style.configure(
+            "Sharp.TButton",
+            background="white",
+            foreground="black",
+            borderwidth=1,
+            relief="flat"  # Flat relief ensures sharp edges
+        )
+
         self.df = None
         self.columns = []
         self.plotter = PlotManager()
@@ -68,8 +77,13 @@ class CSVPlotterApp:
         button_frame = tk.Frame(self.root, bg="#f0f0f0")
         button_frame.pack(anchor="w", padx=140)
 
-        upload_button = tk.Button(button_frame, text="Upload", font=("Arial", 12), command=self.csv_upload, bg="white", fg="black")
-        upload_button.pack(side="left", padx=10)
+        upload_button = ttk.Button(
+            button_frame,
+            text="Upload",
+            style="Sharp.TButton",
+            command=self.csv_upload
+        )
+        upload_button.pack(side="left", padx=10, pady=5)
 
         self.status_label = tk.Label(button_frame, text="Please upload a CSV file", font=("Arial", 12), bg="#f0f0f0",
                                      fg="black")
@@ -242,9 +256,13 @@ class CSVPlotterApp:
         button_row = tk.Frame(controls_frame, bg="#f0f0f0")
         button_row.grid(row=4, column=1, columnspan=2, pady=5, sticky="e")
 
-        self.graph_info = tk.Button(button_row, text="Graph Info", font=("Arial", 12), state="normal", width=10,
-            command=self.graph_info, bg="white", fg="black")
-        self.graph_info.pack(side="right", padx=38)  # Increased padding on the right side
+        self.graph_info = ttk.Button(
+            button_row,
+            text="Graph Info",
+            style="Sharp.TButton",
+            command=self.graph_info
+        )
+        self.graph_info.pack(side="right", padx=10, pady=5)
 
         # Resolution entries
         res_label = tk.Label(controls_frame, text="Resolution:", font=("Arial", 12), bg="#f0f0f0", fg="black")
@@ -286,18 +304,33 @@ class CSVPlotterApp:
         button_row = tk.Frame(controls_frame, bg="#f0f0f0")
         button_row.grid(row=9, column=0, columnspan=2, pady=20)
 
-        self.plot_button = tk.Button(button_row, text="Plot", font=("Arial", 12), state="disabled",
-                                     command=self.plot_graph, width=10, bg="white", fg="black")
-        self.plot_button.pack(side="left", padx=5)
+        self.plot_button = ttk.Button(
+            button_row,
+            text="Plot",
+            style="Sharp.TButton",
+            state="disabled",
+            command=self.plot_graph
+        )
+        self.plot_button.pack(side="left", padx=5, pady=5)
 
-        self.analyze_button = tk.Button(button_row, text="Analyze", font=("Arial", 12), state="disabled",
-                                        command=self.analyze_data, width=10, bg="white", fg="black")
-        self.analyze_button.pack(side="left", padx=30)
+        self.analyze_button = ttk.Button(
+            button_row,
+            text="Analyze",
+            style="Sharp.TButton",
+            state="disabled",
+            command=self.analyze_data
+        )
+        self.analyze_button.pack(side="left", padx=30, pady=5)
 
         # Advanced setting button
-        self.advanced_button = tk.Button(button_row, text="Advanced..", font=("Arial", 12), state="disabled", width=10,
-                                         command=self.advanced_setting, bg="white", fg="black")
-        self.advanced_button.pack(side="left", padx=30)
+        self.advanced_button = ttk.Button(
+            button_row,
+            text="Advanced..",
+            style="Sharp.TButton",
+            state="disabled",
+            command=self.advanced_setting
+        )
+        self.advanced_button.pack(side="left", padx=30, pady=5)
 
     def csv_upload(self):
         file_path = filedialog.askopenfilename(title="Select CSV File", filetypes=[("CSV Files", "*.csv")])
@@ -548,7 +581,7 @@ class CSVPlotterApp:
         adv_window.title("Advanced Settings")
         adv_window.configure(bg="#f0f0f0")
 
-        label = tk.Label(adv_window, text="       Advanced Settings       ", font=("Arial", 16), bg="#f0f0f0")
+        label = tk.Label(adv_window, text="       Advanced Settings       ", font=("Arial", 16), bg="#f0f0f0", fg="black")
         label.pack(pady=0)
 
         col1 = self.column1_combo.get()
@@ -561,20 +594,20 @@ class CSVPlotterApp:
 
         # advanced menu for bar plot with 1 categorical and 1 numerical variables
         elif self.plot_type_combo.get() == "Bar" and col1 in self.categorical_columns and col2 in self.numeric_columns:
-            Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0")
+            Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0", fg="black")
             Line_label.pack(pady=0)
 
             # Entry box for input category names
-            input_cat_label = tk.Label(adv_window, text="Input Group (separated by \",\"): ")
+            input_cat_label = tk.Label(adv_window, text="Input Group (separated by \",\"): ", font=("Arial", 13), bg="#f0f0f0", fg="black")
             input_cat_label.pack(pady=10)
-            input_cat_entry = tk.Entry(adv_window, font=("Arial", 12), width=20, bg="white", fg="black")
+            input_cat_entry = tk.Entry(adv_window, font=("Arial", 12), width=20, bg="white", fg="black", bd=1, highlightthickness=0)
             input_cat_entry.pack(pady=10)
             input_cat_entry.insert(0, self.plotter.input_cat)
 
             # Checkbox for Anova
             anova_var = tk.BooleanVar(value=self.plotter.anova_bool)
             anova_checkbox = tk.Checkbutton(adv_window, text="Perform ANOVA/T-Test", variable=anova_var,
-                                            font=("Arial", 12), bg="#f0f0f0")
+                                            font=("Arial", 12), bg="#f0f0f0", fg="black")
             anova_checkbox.pack(pady=10)
 
             save_button = tk.Button(
