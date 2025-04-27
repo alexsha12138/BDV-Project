@@ -660,18 +660,78 @@ class CSVPlotterApp:
         adv_window.title("Advanced Settings")
         adv_window.configure(bg="#f0f0f0")
 
-        label = tk.Label(adv_window, text="       Advanced Settings       ", font=("Arial", 16), bg="#f0f0f0",
-                         fg="black")
-        label.pack(pady=0)
+        label = tk.Label(adv_window, text="       Advanced Settings       ", font=("Arial", 16), bg="#f0f0f0", fg="black")
+        label.pack(pady=10)
 
         col1 = self.column1_combo.get()
         col2 = self.column2_combo.get()
         col3 = self.column3_combo.get()
 
+        # Advanced settings for Line Graph
+        if self.plot_type_combo.get() == "Line":
+            line_label = tk.Label(adv_window, text="Line Graph Settings", font=("Arial", 12), bg="#f0f0f0", fg="black")
+            line_label.pack(pady=10)
+
+            # Add toggle for showing markers
+            show_markers_var = tk.BooleanVar(value=self.plotter.show_markers)
+            show_markers_checkbox = tk.Checkbutton(
+                adv_window,
+                text="Show Markers",
+                variable=show_markers_var,
+                font=("Arial", 12),
+                bg="#f0f0f0",
+                fg="black",
+                command=lambda: toggle_marker_color()  # Add dynamic behavior
+            )
+            show_markers_checkbox.pack(pady=10)
+
+            # Line color selection
+            line_color_button = tk.Button(
+                adv_window,
+                text="Select Line Color",
+                font=("Arial", 12),
+                command=lambda: self.select_line_color("line")
+            )
+            line_color_button.pack(pady=10)
+
+            # Dynamic marker color selection (initially disabled if markers are off)
+            marker_color_button = tk.Button(
+                adv_window,
+                text="Select Marker Color",
+                font=("Arial", 12),
+                state="normal" if self.plotter.show_markers else "disabled",
+                command=lambda: self.select_line_color("marker")
+            )
+            marker_color_button.pack(pady=10)
+
+            def toggle_marker_color():
+                """
+                Enable or disable the marker color button based on the state of the "Show Markers" toggle.
+                """
+                if show_markers_var.get():
+                    marker_color_button.config(state="normal")
+                else:
+                    marker_color_button.config(state="disabled")
+
+            # Save button
+            save_button = tk.Button(
+                adv_window,
+                text="Save",
+                font=("Arial", 12),
+                command=lambda: save_line_settings()
+            )
+            save_button.pack(pady=(20, 10))
+
+            def save_line_settings():
+                """
+                Save the selected line and marker settings into the PlotManager object.
+                """
+                self.plotter.show_markers = show_markers_var.get()
+                adv_window.destroy()
+
         # Advanced settings for Heat Map
-        if self.plot_type_combo.get() == "Heat Map":
-            heatmap_label = tk.Label(adv_window, text="Heat Map Variables", font=("Arial", 12), bg="#f0f0f0",
-                                     fg="black")
+        elif self.plot_type_combo.get() == "Heat Map":
+            heatmap_label = tk.Label(adv_window, text="Heat Map Variables", font=("Arial", 12), bg="#f0f0f0", fg="black")
             heatmap_label.pack(pady=10)
 
             # Frame to hold toggles
@@ -704,31 +764,23 @@ class CSVPlotterApp:
         self.plotter.heatmap_selected_variables = selected_variables
         window.destroy()  # Close the advanced settings window
 
+    def select_line_color(self, which):
+        """
+        Opens a color chooser to select a color for the line or markers.
 
-        if self.plot_type_combo.get() == "Line":
-            Line_label = tk.Label(adv_window, text="Line Graph", font=("Arial", 12), bg="#f0f0f0", fg="black")
-            Line_label.pack(pady=0)
-
-            # Add toggle for showing markers
-            show_markers_var = tk.BooleanVar(
-                value=self.plotter.show_markers if hasattr(self.plotter, 'show_markers') else True)
-            show_markers_checkbox = tk.Checkbutton(
-                adv_window,
-                text="Show Markers",
-                variable=show_markers_var,
-                font=("Arial", 12),
-                bg="#f0f0f0",
-                fg="black"
-            )
-            show_markers_checkbox.pack(pady=10)
-
-            def save_line_settings():
-                self.plotter.show_markers = show_markers_var.get()
-                adv_window.destroy()
-
-            save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_line_settings)
-            save_button.pack(pady=(20, 10))
-
+        Args:
+            which (str): Either 'line' or 'marker', determining which color to set.
+        """
+        color = colorchooser.askcolor(title=f"Select {which.capitalize()} Color")[1]
+        if color:
+            if which == "line":
+                self.plotter.line_color = color
+                self.line_color_display.config(bg=color)
+            elif which == "marker":
+                self.plotter.marker_color = color
+                self.marker_color_display.config(bg=color)
+        
+        
         # advanced menu for bar plot with 1 categorical and 1 numerical variables
         elif self.plot_type_combo.get() == "Bar" and col1 in self.categorical_columns and col2 in self.numeric_columns:
             Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0", fg="black")
