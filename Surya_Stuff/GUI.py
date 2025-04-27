@@ -540,7 +540,7 @@ class CSVPlotterApp:
         adv_window.title("Advanced Settings")
         adv_window.configure(bg="#f0f0f0")
 
-        label = tk.Label(adv_window, text="       Advanced Settings       ", font=("Arial", 16), bg="#f0f0f0")
+        label = tk.Label(adv_window, text="       Advanced Settings       ", font=("Arial", 16), bg="#f0f0f0", fg="black")
         label.pack(pady=0)
 
         col1 = self.column1_combo.get()
@@ -548,25 +548,25 @@ class CSVPlotterApp:
         col3 = self.column3_combo.get()
 
         if self.plot_type_combo.get() == "Line":
-            Line_label = tk.Label(adv_window, text="Line Graph", font=("Arial", 12), bg="#f0f0f0")
+            Line_label = tk.Label(adv_window, text="Line Graph", font=("Arial", 12), bg="#f0f0f0", fg="black")
             Line_label.pack(pady=0)
 
         # advanced menu for bar plot with 1 categorical and 1 numerical variables
         elif self.plot_type_combo.get() == "Bar" and col1 in self.categorical_columns and col2 in self.numeric_columns:
-            Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0")
+            Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0", fg="black")
             Line_label.pack(pady=0)
 
             # Entry box for input category names
-            input_cat_label = tk.Label(adv_window, text="Input Group (separated by \",\"): ")
+            input_cat_label = tk.Label(adv_window, text="Input Group (separated by \",\"): ", font=("Arial", 13), bg="#f0f0f0", fg="black")
             input_cat_label.pack(pady=10)
-            input_cat_entry = tk.Entry(adv_window, font=("Arial", 12), width=20)
+            input_cat_entry = tk.Entry(adv_window, font=("Arial", 12), width=20, bg="white", fg="black", bd=1, highlightthickness=0)
             input_cat_entry.pack(pady=10)
             input_cat_entry.insert(0, self.plotter.input_cat)
 
             # Checkbox for Anova
             anova_var = tk.BooleanVar(value=self.plotter.anova_bool)
             anova_checkbox = tk.Checkbutton(adv_window, text="Perform ANOVA/T-Test", variable=anova_var,
-                                            font=("Arial", 12))
+                                            font=("Arial", 12), bg="#f0f0f0", fg="black")
             anova_checkbox.pack(pady=10)
 
             save_button = tk.Button(
@@ -583,32 +583,32 @@ class CSVPlotterApp:
 
         # advanced menu for bar plot with 2 numerical variables
         elif self.plot_type_combo.get() == "Bar" and col1 in self.numeric_columns and col2 in self.numeric_columns and col3 == "":
-            Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0")
+            Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0", fg="black")
             Line_label.pack(pady=0)
 
             # check box for 1 sample t-test
             t1_marker_var = tk.BooleanVar(value=self.plotter.t1_bool)
             t1_marker_checkbox = tk.Checkbutton(adv_window, text="Plot 1 sample t-test", variable=t1_marker_var,
-                                                font=("Arial", 12))
+                                                font=("Arial", 12), bg="#f0f0f0", fg="black")
             t1_marker_checkbox.pack(pady=10)
 
             # reference values for 1 sample t-test
-            t1_col1_ref_lab = tk.Label(adv_window, text="Variable 1 reference value:", font=("Arial", 12), bg="#f0f0f0")
+            t1_col1_ref_lab = tk.Label(adv_window, text="Variable 1 reference value:", font=("Arial", 12), bg="#f0f0f0", fg="black")
             t1_col1_ref_lab.pack(pady=0)
-            t1_col1_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10)
+            t1_col1_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1, highlightthickness=0)
             t1_col1_ref_entry.pack(pady=10)
             t1_col1_ref_entry.insert(0, str(self.plotter.t1_ref1))
 
-            t1_col2_ref_lab = tk.Label(adv_window, text="Variable 2 reference value:", font=("Arial", 12), bg="#f0f0f0")
+            t1_col2_ref_lab = tk.Label(adv_window, text="Variable 2 reference value:", font=("Arial", 12), bg="#f0f0f0", fg="black")
             t1_col2_ref_lab.pack(pady=0)
-            t1_col2_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10)
+            t1_col2_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1, highlightthickness=0)
             t1_col2_ref_entry.pack(pady=10)
             t1_col2_ref_entry.insert(0, str(self.plotter.t1_ref2))
 
             # check box for 2 sample t-test
             t2_marker_var = tk.BooleanVar(value=self.plotter.t2_bool)
             t2_marker_checkbox = tk.Checkbutton(adv_window, text="Plot 2 sample t-test", variable=t2_marker_var,
-                                                font=("Arial", 12))
+                                                font=("Arial", 12), bg="#f0f0f0", fg="black")
             t2_marker_checkbox.pack(pady=10)
 
             save_button = tk.Button(
@@ -626,11 +626,11 @@ class CSVPlotterApp:
 
         # bar plot with 3 numerical variables
         elif self.plot_type_combo.get() == "Bar" and col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:
-            Bar_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0")
+            Bar_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0", fg="black")
             Bar_label.pack(pady=0)
             # check box for anova
             anova_bool = tk.BooleanVar(value=self.plotter.anova_bool)
-            anova_bool_checkbox = tk.Checkbutton(adv_window, text="ANOVA test", variable=anova_bool, font=("Arial", 12))
+            anova_bool_checkbox = tk.Checkbutton(adv_window, text="ANOVA test", variable=anova_bool, font=("Arial", 12), bg="#f0f0f0", fg="black")
             anova_bool_checkbox.pack(pady=10)
 
             save_button = tk.Button(
@@ -646,18 +646,18 @@ class CSVPlotterApp:
 
         # options for scatterplot
         elif self.plot_type_combo.get() == "Scatter":
-            Line_label = tk.Label(adv_window, text="Scatter Plot", font=("Arial", 12), bg="#f0f0f0")
+            Line_label = tk.Label(adv_window, text="Scatter Plot", font=("Arial", 12), bg="#f0f0f0", fg="black")
             Line_label.pack(pady=0)
 
             # Line of Best Fit plot
             best_fit_var = tk.BooleanVar(value=self.plotter.show_best_fit)
             best_fit_checkbox = tk.Checkbutton(adv_window, text="Show Line of Best Fit", variable=best_fit_var,
-                                               font=("Arial", 12))
+                                               font=("Arial", 12), bg="#f0f0f0", fg="black")
             best_fit_checkbox = tk.Checkbutton(
                 adv_window,
                 text="Show Line of Best Fit",
                 variable=best_fit_var,
-                font=("Arial", 12),
+                font=("Arial", 12), bg="#f0f0f0", fg="black",
                 command=lambda: toggle_dynamic_checkboxes())
             best_fit_checkbox.pack(pady=10, padx=20, anchor="w")
 
@@ -669,7 +669,6 @@ class CSVPlotterApp:
 
             def save_scatter_settings():
                 self.plotter.show_best_fit = best_fit_var.get()
-                messagebox.showinfo("Settings Saved", "Scatter plot settings saved successfully!")
 
             # Checkbox for "Exclude Confidence Interval"
             ci_var = tk.BooleanVar(value=not self.plotter.show_confidence_interval)  # Default to include CI
@@ -677,7 +676,7 @@ class CSVPlotterApp:
                 adv_window,
                 text="Exclude Confidence Interval",
                 variable=ci_var,
-                font=("Arial", 12),
+                font=("Arial", 12), bg="#f0f0f0", fg="black",
                 state="normal" if best_fit_var.get() else "disabled")  # Enable only if LOBF is selected
             ci_checkbox.pack(pady=10, padx=20, anchor="w")
 
@@ -687,20 +686,20 @@ class CSVPlotterApp:
                 adv_window,
                 text="Show Equation",
                 variable=equation_var,
-                font=("Arial", 12),
+                font=("Arial", 12), bg="#f0f0f0", fg="black",
                 state="normal" if best_fit_var.get() else "disabled")
             equation_checkbox.pack(pady=10, padx=20, anchor="w")
 
             # Show R value
             r_var = tk.BooleanVar(value=self.plotter.show_r)
             r_checkbox = tk.Checkbutton(adv_window, text="Show R (Correlation Coefficient)", variable=r_var,
-                                        font=("Arial", 12), state="normal")
+                                        font=("Arial", 12), bg="#f0f0f0", fg="black", state="normal")
             r_checkbox.pack(pady=10, padx=20, anchor="w")
 
             # Show R² value
             r2_var = tk.BooleanVar(value=self.plotter.show_r2)
             r2_checkbox = tk.Checkbutton(adv_window, text="Show R² (Coefficient of Determination)", variable=r2_var,
-                                         font=("Arial", 12), state="normal")
+                                         font=("Arial", 12), bg="#f0f0f0", fg="black", state="normal")
             r2_checkbox.pack(pady=10, padx=20, anchor="w")
 
             def save_scatter_settings():
@@ -716,12 +715,12 @@ class CSVPlotterApp:
 
         # options for box plot
         elif self.plot_type_combo.get() == "Box Plot":
-            box_label = tk.Label(adv_window, text="Box Plot", font=("Arial", 12), bg="#f0f0f0")
+            box_label = tk.Label(adv_window, text="Box Plot", font=("Arial", 12), bg="#f0f0f0",fg="black")
             box_label.pack(pady=0)
 
             outliers_var = tk.BooleanVar(value=self.plotter.show_outliers)
             outliers_checkbox = tk.Checkbutton(adv_window, text="Show Outliers", variable=outliers_var,
-                                               font=("Arial", 12))
+                                               font=("Arial", 12), bg="#f0f0f0", fg="black")
             outliers_checkbox.pack(pady=10)
 
             def save_box_settings():
@@ -732,11 +731,11 @@ class CSVPlotterApp:
             save_button.pack(pady=(20, 10))
 
         elif self.plot_type_combo.get() == "Pie Chart":
-            Pie_label = tk.Label(adv_window, text="Pie Chart", font=("Arial", 12), bg="#f0f0f0")
+            Pie_label = tk.Label(adv_window, text="Pie Chart", font=("Arial", 12), bg="#f0f0f0", fg="black")
             Pie_label.pack(pady=0)
 
             # Display Option Dropdown
-            display_label = tk.Label(adv_window, text="Display beside pie sections:", font=("Arial", 12), bg="#f0f0f0")
+            display_label = tk.Label(adv_window, text="Display beside pie sections:", font=("Arial", 12), bg="#f0f0f0", fg="black")
             display_label.pack(pady=(10, 0))
 
             display_var = tk.StringVar(
@@ -749,14 +748,14 @@ class CSVPlotterApp:
             labels_var = tk.BooleanVar(
                 value=self.plotter.pie_show_labels if hasattr(self.plotter, "pie_show_labels") else True)
             labels_checkbox = tk.Checkbutton(adv_window, text="Show Labels", variable=labels_var, font=("Arial", 12),
-                                             bg="#f0f0f0")
+                                             bg="#f0f0f0", fg="black")
             labels_checkbox.pack(pady=5)
 
             # Legend Toggle
             legend_var = tk.BooleanVar(
                 value=self.plotter.pie_show_legend if hasattr(self.plotter, "pie_show_legend") else True)
             legend_checkbox = tk.Checkbutton(adv_window, text="Show Legend", variable=legend_var, font=("Arial", 12),
-                                             bg="#f0f0f0")
+                                             bg="#f0f0f0", fg="black")
             legend_checkbox.pack(pady=5)
 
             # Save Button
@@ -773,21 +772,21 @@ class CSVPlotterApp:
             save_button.pack(pady=(20, 10))
 
         elif self.plot_type_combo.get() == "Histogram":
-            hist_label = tk.Label(adv_window, text="Histogram", font=("Arial", 12), bg="#f0f0f0")
+            hist_label = tk.Label(adv_window, text="Histogram", font=("Arial", 12), bg="#f0f0f0",fg="black")
             hist_label.pack(pady=0)
 
             # Number of bins
-            bins_label = tk.Label(adv_window, text="Number of bins:", font=("Arial", 12), bg="#f0f0f0")
+            bins_label = tk.Label(adv_window, text="Number of bins:", font=("Arial", 12), bg="#f0f0f0", fg="black") 
             bins_label.pack(pady=(10, 0))
 
-            bins_entry = tk.Entry(adv_window, font=("Arial", 12), width=10)
+            bins_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1, highlightthickness=0)
             bins_entry.pack(pady=5)
             bins_entry.insert(0, str(self.plotter.bin_size))
 
             # kernel density estimation
             kde_var = tk.BooleanVar(value=self.plotter.kde_bool)
             kde_checkbox = tk.Checkbutton(adv_window, text="Show Kernel Density Estimation", variable=kde_var,
-                                          font=("Arial", 12), bg="#f0f0f0")
+                                          font=("Arial", 12), bg="#f0f0f0", fg="black")
             kde_checkbox.pack(pady=5)
 
             # Save Button
@@ -807,14 +806,11 @@ class CSVPlotterApp:
             # Instruction label
             instruction_label = tk.Label(
                 adv_window,
-                text="Enter variable names separated by commas:",
-                font=("Arial", 12),
-                bg="#f0f0f0"
-            )
+                text="Enter variable names separated by commas:", font=("Arial", 12), bg="#f0f0f0", fg="black")
             instruction_label.pack(pady=(10, 5))
 
             # Text box for user input
-            pairplot_entry = tk.Entry(adv_window, font=("Arial", 12), width=30)
+            pairplot_entry = tk.Entry(adv_window, font=("Arial", 12), width=30, bg="white", fg="black", bd=1, highlightthickness=0)
 
             # Pre-fill the text box with the previously saved value (if any)
             if hasattr(self.plotter, 'pairplot_variables') and self.plotter.pairplot_variables:
@@ -837,25 +833,25 @@ class CSVPlotterApp:
             save_button.pack(pady=(20, 10))
 
         elif self.plot_type_combo.get() == "Violin Plot":
-            Violin_label = tk.Label(adv_window, text="Violin Plot", font=("Arial", 12), bg="#f0f0f0")
+            Violin_label = tk.Label(adv_window, text="Violin Plot", font=("Arial", 12), bg="#f0f0f0", fg="black")
             Violin_label.pack(pady=0)
 
             if self.column3_combo.get() == "":
                 if col1 in self.categorical_columns and col2 in self.numeric_columns:
-                    Violin_label_label = tk.Label(adv_window, text="Violin Graph", font=("Arial", 12), bg="#f0f0f0")
+                    Violin_label_label = tk.Label(adv_window, text="Violin Graph", font=("Arial", 12), bg="#f0f0f0", fg="black")
                     Violin_label_label.pack(pady=0)
 
                     # Entry box for input category names
-                    input_cat_label = tk.Label(adv_window, text="Input Group (separated by \",\"): ")
+                    input_cat_label = tk.Label(adv_window, text="Input Group (separated by \",\"): ", bg="#f0f0f0", fg="black",)
                     input_cat_label.pack(pady=10)
-                    input_cat_entry = tk.Entry(adv_window, font=("Arial", 12), width=20)
+                    input_cat_entry = tk.Entry(adv_window, font=("Arial", 12), width=20, bg="white", fg="black", bd=1, highlightthickness=0)
                     input_cat_entry.pack(pady=10)
                     input_cat_entry.insert(0, self.plotter.input_cat)
 
                     # Checkbox for Anova
                     anova_var = tk.BooleanVar(value=self.plotter.anova_bool)
                     anova_checkbox = tk.Checkbutton(adv_window, text="Perform ANOVA/T-Test", variable=anova_var,
-                                                    font=("Arial", 12))
+                                                    font=("Arial", 12), bg="#f0f0f0", fg="black")
                     anova_checkbox.pack(pady=10)
 
                     save_button = tk.Button(
@@ -874,28 +870,27 @@ class CSVPlotterApp:
                     # check box for 1 sample t-test
                     t1_marker_var = tk.BooleanVar(value=self.plotter.t1_bool)
                     t1_marker_checkbox = tk.Checkbutton(adv_window, text="Plot 1 sample t-test", variable=t1_marker_var,
-                                                        font=("Arial", 12))
+                                                        font=("Arial", 12), bg="#f0f0f0", fg="black")
                     t1_marker_checkbox.pack(pady=10)
 
                     # reference values for 1 sample t-test
                     t1_col1_ref_lab = tk.Label(adv_window, text="Variable 1 reference value:", font=("Arial", 12),
-                                               bg="#f0f0f0")
+                                               bg="#f0f0f0", fg="black")
                     t1_col1_ref_lab.pack(pady=0)
-                    t1_col1_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10)
+                    t1_col1_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1, highlightthickness=0)
                     t1_col1_ref_entry.pack(pady=10)
                     t1_col1_ref_entry.insert(0, str(self.plotter.t1_ref1))
 
-                    t1_col2_ref_lab = tk.Label(adv_window, text="Variable 2 reference value:", font=("Arial", 12),
-                                               bg="#f0f0f0")
+                    t1_col2_ref_lab = tk.Label(adv_window, text="Variable 2 reference value:", font=("Arial", 12), bg="#f0f0f0", fg="black")
                     t1_col2_ref_lab.pack(pady=0)
-                    t1_col2_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10)
+                    t1_col2_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1, highlightthickness=0)
                     t1_col2_ref_entry.pack(pady=10)
                     t1_col2_ref_entry.insert(0, str(self.plotter.t1_ref2))
 
                     # check box for 2 sample t-test
                     t2_marker_var = tk.BooleanVar(value=self.plotter.t2_bool)
                     t2_marker_checkbox = tk.Checkbutton(adv_window, text="Plot 2 sample t-test", variable=t2_marker_var,
-                                                        font=("Arial", 12))
+                                                        font=("Arial", 12), bg="#f0f0f0",fg="black")
                     t2_marker_checkbox.pack(pady=10)
 
                     save_button = tk.Button(
@@ -910,11 +905,12 @@ class CSVPlotterApp:
                         }, window= adv_window, confirmation_text="Violin plot settings saved.")
                     )
                     save_button.pack(pady=(20, 10))
+                    
             else:
                 # anova boolean marker
                 anova_var = tk.BooleanVar(value=self.plotter.anova_bool)
                 anova_checkbox = tk.Checkbutton(adv_window, text="Perform ANOVA", variable=anova_var,
-                                                font=("Arial", 12))
+                                                font=("Arial", 12), bg="#f0f0f0", fg="black")
                 anova_checkbox.pack(pady=10)
 
                 # Save Button
@@ -934,7 +930,6 @@ class CSVPlotterApp:
                 setattr(self.plotter, attr, cast(widget.get()))
             except Exception:
                 setattr(self.plotter, attr, "")
-        messagebox.showinfo("Settings Saved", confirmation_text)
         if window:
             window.destroy()
 
