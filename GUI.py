@@ -404,7 +404,7 @@ class CSVPlotterApp:
             equation = f"y = {slope:.2f}x + {intercept:.2f}"
             messagebox.showinfo("Line of Best Fit", f"Equation: {equation}\nR: {r_value:.2f}\nR²: {r_value ** 2:.2f}")
         
-        elif plot_type == "Violin Plot" and col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:            
+        elif (plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:            
             
             # Calculate stats
             anova_result = stats.f_oneway(self.df[col1], self.df[col2], self.df[col3])
@@ -421,6 +421,84 @@ class CSVPlotterApp:
             # Show results in messagebox
             result_str = f"ANOVA p-value: {p_value_anova:.4e}\n\nTukey HSD Summary:\n{tukey.summary().as_text()}"
             messagebox.showinfo("Statistical Results", result_str)
+
+
+        elif (plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.numeric_columns and col2 in self.numeric_columns and not col3:
+            try:
+                # Perform one-sample t-tests
+                t_stat1, p_value1 = stats.ttest_1samp(self.df[col1].dropna(), 0)
+                t_stat2, p_value2 = stats.ttest_1samp(self.df[col2].dropna(), 0)
+
+                # Perform two-sample t-test
+                t_stat_two_sample, p_value_two_sample = stats.ttest_ind(self.df[col1].dropna(), self.df[col2].dropna())
+
+                # Display results
+                results = (
+                    f"One-Sample T-Test for {col1}:\n"
+                    f"  T-Statistic: {t_stat1:.4f}\n"
+                    f"  P-Value: {p_value1:.4e}\n\n"
+                    f"One-Sample T-Test for {col2}:\n"
+                    f"  T-Statistic: {t_stat2:.4f}\n"
+                    f"  P-Value: {p_value2:.4e}\n\n"
+                    f"Two-Sample T-Test between {col1} and {col2}:\n"
+                    f"  T-Statistic: {t_stat_two_sample:.4f}\n"
+                    f"  P-Value: {p_value_two_sample:.4e}"
+                )
+                messagebox.showinfo("T-Test Results", results)
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to perform t-tests: {str(e)}")
+
+        elif (plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.categorical_columns and col2 in self.numeric_columns and not col3:
+
+            if len(self.df[col1].unique()) == 2:
+                try:
+                    # Perform two-sample t-test for each category in col1
+                    categories = self.df[col1].unique()
+                    group1 = self.df[self.df[col1] == categories[0]][col2].dropna()
+                    group2 = self.df[self.df[col1] == categories[1]][col2].dropna()
+
+                    # Calculate statistics for each group
+                    group1_mean = group1.mean()
+                    group1_std = group1.std()
+                    group2_mean = group2.mean()
+                    group2_std = group2.std()
+
+                    # Perform two-sample t-test
+                    t_stat, p_value = stats.ttest_ind(group1, group2)
+
+                    # Display results
+                    results = (
+                        f"T-Test Results for {col1}:\n\n"
+                        f"Category: {categories[0]}\n"
+                        f"  Mean: {group1_mean:.4f}\n"
+                        f"  Standard Deviation: {group1_std:.4f}\n\n"
+                        f"Category: {categories[1]}\n"
+                        f"  Mean: {group2_mean:.4f}\n"
+                        f"  Standard Deviation: {group2_std:.4f}\n\n"
+                        f"Two-Sample T-Test:\n"
+                        f"  T-Statistic: {t_stat:.4f}\n"
+                        f"  P-Value: {p_value:.4e}"
+                    )
+                    messagebox.showinfo("T-Test Results", results)
+                except Exception as e:
+                    messagebox.showerror("Error", f"Failed to perform t-test: {str(e)}")
+            else:
+                try:
+                    # Perform ANOVA test for multiple categories in col1
+                    groups = [self.df[self.df[col1] == category][col2].dropna() for category in self.df[col1].unique()]
+                    anova_result = stats.f_oneway(*groups)
+                    p_value_anova = anova_result.pvalue
+
+                    # Prepare data for Tukey HSD
+                    values = self.df[col2].dropna()
+                    groups_labels = self.df[col1][self.df[col2].notna()]
+                    tukey = pairwise_tukeyhsd(endog=values, groups=groups_labels, alpha=0.05)
+
+                    # Show results in messagebox
+                    result_str = f"ANOVA p-value: {p_value_anova:.4e}\n\nTukey HSD Summary:\n{tukey.summary().as_text()}"
+                    messagebox.showinfo("Statistical Results", result_str)
+                except Exception as e:
+                    messagebox.showerror("Error", f"Failed to perform ANOVA: {str(e)}")
 
         elif plot_type == "Box Plot" and col1 and col2:
             results = []
@@ -494,10 +572,12 @@ class CSVPlotterApp:
             # Display results in a scrollable window
             self.show_scrollable_results("\n\n".join(results))
             return
-        elif col1 and col2 and plot_type not in ["Pie Chart", "Heat Map", "Histogram"]:
-            self.plotter.perform_stat_test(self.df, col1, col2)
+        # elif col1 and col2 and plot_type in ["Pie Chart", "Heat Map", "Histogram"]:
+            ## self.plotter.perform_stat_test(self.df, col1, col2)
+        
+    
         else:
-            messagebox.showinfo("Analysis", "Statistical analysis is not applicable for this plot type.")
+            messagebox.showinfo("Analysis", "Statistical analysis is unavailable for this plot type.")
 
     def select_line_color(self, which):
         color = colorchooser.askcolor(title=f"Select {which} color")[1]
