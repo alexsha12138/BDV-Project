@@ -905,7 +905,7 @@ class CSVPlotterApp:
                         }, window= adv_window, confirmation_text="Violin plot settings saved.")
                     )
                     save_button.pack(pady=(20, 10))
-                    
+
             else:
                 # anova boolean marker
                 anova_var = tk.BooleanVar(value=self.plotter.anova_bool)
@@ -955,7 +955,7 @@ class CSVPlotterApp:
             self.plot_type_combo.set("")
 
             if col1 in self.numeric_columns and col2 == "" and col3 == "":
-                self.plot_type_combo["values"] = ["Histogram"]
+                self.plot_type_combo["values"] = ["Histogram", "Pie Chart"]
             elif col1 == "" and col2 == "" and col3 == "":
                 self.plot_type_combo["values"] = ["Pair Plot", "Heat Map"]
             elif col1 in self.numeric_columns and col2 in self.categorical_columns:
@@ -966,8 +966,6 @@ class CSVPlotterApp:
                 self.plot_type_combo["values"] = ["Scatter", "Line", "Bar", "Violin Plot", "Box Plot"]
             elif col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:
                 self.plot_type_combo["values"] = ["Scatter", "Bar", "Violin Plot", "Box Plot"]
-            elif col1 in self.categorical_columns and col2 == "":
-                self.plot_type_combo["values"] = ["Pie Chart"]
             elif col1 in self.categorical_columns and col2 in self.categorical_columns:
                 self.plot_type_combo["values"] = ["Heat Map"]
 
