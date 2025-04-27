@@ -82,9 +82,9 @@ class CSVPlotterApp:
 
         # Numerical Variables Frame
         self.num_frame = tk.LabelFrame(output_frame, text="Numerical Variables", font=("Arial", 12, "bold"),
-                                       bg="#f0f0f0", bd=0, highlightthickness=0)
+                                       bg="#f0f0f0", fg="black", bd=0, highlightthickness=0)
         self.num_frame.pack(fill="both", expand=True, pady=(0, 10))
-        self.num_listbox = tk.Listbox(self.num_frame, width=30, height=10, font=("Arial", 12))
+        self.num_listbox = tk.Listbox(self.num_frame, width=30, height=10, font=("Arial", 12), bg="white", fg="black")
         self.num_listbox.pack(side="left", fill="both", expand=True)
         num_scroll = tk.Scrollbar(self.num_frame, orient="vertical", command=self.num_listbox.yview)
         num_scroll.pack(side="right", fill="y")
@@ -92,9 +92,9 @@ class CSVPlotterApp:
 
         # Categorical Variables Frame
         self.cat_frame = tk.LabelFrame(output_frame, text="Categorical Variables", font=("Arial", 12, "bold"),
-                                       bg="#f0f0f0", bd=0, highlightthickness=0)
+                                       bg="#f0f0f0", fg="black", bd=0, highlightthickness=0)
         self.cat_frame.pack(fill="both", expand=True)
-        self.cat_listbox = tk.Listbox(self.cat_frame, width=30, height=10, font=("Arial", 12))
+        self.cat_listbox = tk.Listbox(self.cat_frame, width=30, height=10, font=("Arial", 12), bg="white", fg="black")
         self.cat_listbox.pack(side="left", fill="both", expand=True)
         cat_scroll = tk.Scrollbar(self.cat_frame, orient="vertical", command=self.cat_listbox.yview)
         cat_scroll.pack(side="right", fill="y")
@@ -105,7 +105,7 @@ class CSVPlotterApp:
         controls_frame.pack(side="left", padx=(20, 0), anchor="center")
 
         # First column dropdown
-        column1_label = tk.Label(controls_frame, text="Select first variable:", font=("Arial", 12), bg="#f0f0f0")
+        column1_label = tk.Label(controls_frame, text="Select first variable:", font=("Arial", 12), bg="#f0f0f0", fg="black")
         column1_label.grid(row=0, column=0, sticky="w")
 
         self.column1_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12))
@@ -113,7 +113,7 @@ class CSVPlotterApp:
         self.column1_combo.bind("<<ComboboxSelected>>", self.update_plot_selection)
 
         # Second column dropdown
-        column2_label = tk.Label(controls_frame, text="Select second variable:", font=("Arial", 12), bg="#f0f0f0")
+        column2_label = tk.Label(controls_frame, text="Select second variable:", font=("Arial", 12), bg="#f0f0f0", fg="black")
         column2_label.grid(row=1, column=0, sticky="w")
 
         self.column2_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12))
@@ -121,18 +121,15 @@ class CSVPlotterApp:
         self.column2_combo.bind("<<ComboboxSelected>>", self.update_plot_selection)
 
         # Third column dropdown
-        column3_label = tk.Label(controls_frame, text="Select third variable:", font=("Arial", 12), bg="#f0f0f0")
+        column3_label = tk.Label(controls_frame, text="Select third variable:", font=("Arial", 12), bg="#f0f0f0", fg="black")
         column3_label.grid(row=2, column=0, sticky="w")
 
         self.column3_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12))
         self.column3_combo.grid(row=2, column=1, pady=5)
         self.column3_combo.bind("<<ComboboxSelected>>", self.update_plot_selection)
-
-
-        
         
         # Plot type dropdown
-        plot_type_label = tk.Label(controls_frame, text="Select plot type:", font=("Arial", 12), bg="#f0f0f0")
+        plot_type_label = tk.Label(controls_frame, text="Select plot type:", font=("Arial", 12), bg="#f0f0f0", fg="black")
         plot_type_label.grid(row=3, column=0, sticky="w")
 
         self.plot_type_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12),
@@ -221,15 +218,15 @@ class CSVPlotterApp:
         font_frame = tk.Frame(controls_frame, bg="#f0f0f0")
         font_frame.grid(row=4, column=0, columnspan=2, pady=5, sticky="w")
 
-        title_font_label = tk.Label(font_frame, text="Title Font:", font=("Arial", 12), bg="#f0f0f0")
+        title_font_label = tk.Label(font_frame, text="Title Font:", font=("Arial", 12), bg="#f0f0f0", fg="black", bd=1, highlightthickness=0)
         title_font_label.pack(side="left", padx=(0, 5))
-        self.title_font_entry = tk.Entry(font_frame, font=("Arial", 12), width=5)
+        self.title_font_entry = tk.Entry(font_frame, font=("Arial", 12), width=5, bg="white", fg="black", bd=1, highlightthickness=0)
         self.title_font_entry.insert(0, "14")  # Set default value to 14
         self.title_font_entry.pack(side="left", padx=(0, 10))
 
-        text_font_label = tk.Label(font_frame, text="Text Font:", font=("Arial", 12), bg="#f0f0f0")
+        text_font_label = tk.Label(font_frame, text="Text Font:", font=("Arial", 12), bg="#f0f0f0", fg="black", bd=1, highlightthickness=0)
         text_font_label.pack(side="left", padx=(0, 5))
-        self.text_font_entry = tk.Entry(font_frame, font=("Arial", 12), width=5)
+        self.text_font_entry = tk.Entry(font_frame, font=("Arial", 12), width=5, bg="white", fg="black", bd=1, highlightthickness=0)
         self.text_font_entry.insert(0, "12")  # Set default value to 12
         self.text_font_entry.pack(side="left", padx=(0, 5))
 
@@ -242,39 +239,39 @@ class CSVPlotterApp:
         self.graph_info.pack(side="right", padx=38)  # Increased padding on the right side
 
         # Resolution entries
-        res_label = tk.Label(controls_frame, text="Resolution:", font=("Arial", 12), bg="#f0f0f0")
+        res_label = tk.Label(controls_frame, text="Resolution:", font=("Arial", 12), bg="#f0f0f0", fg="black")
         res_label.grid(row=5, column=0, sticky="w", pady=(20, 5))
 
         res_frame = tk.Frame(controls_frame, bg="#f0f0f0")
         res_frame.grid(row=5, column=1, pady=(20, 5), sticky="w")
 
-        self.xres_entry = tk.Entry(res_frame, font=("Arial", 12), width=8)
+        self.xres_entry = tk.Entry(res_frame, font=("Arial", 12), width=8, bg="white", fg="black", bd=1, highlightthickness=0)
         self.xres_entry.insert(0, "1280")
         self.xres_entry.pack(side="left")
 
-        x_label = tk.Label(res_frame, text="x", font=("Arial", 12), bg="#f0f0f0")
+        x_label = tk.Label(res_frame, text="x", font=("Arial", 12), bg="#f0f0f0", fg="black")
         x_label.pack(side="left", padx=(5, 5))
 
-        self.yres_entry = tk.Entry(res_frame, font=("Arial", 12), width=8)
+        self.yres_entry = tk.Entry(res_frame, font=("Arial", 12), width=8, bg="white", fg="black", bd=1, highlightthickness=0)
         self.yres_entry.insert(0, "720")
         self.yres_entry.pack(side="left")
 
         # Custom title and label
-        title_label = tk.Label(controls_frame, text="Title:", font=("Arial", 12), bg="#f0f0f0")
+        title_label = tk.Label(controls_frame, text="Title:", font=("Arial", 12), bg="#f0f0f0", fg="black")
         title_label.grid(row=6, column=0, sticky="w")
-        self.title_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30)
+        self.title_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30, bg="white", fg="black", bd=1, highlightthickness=0)
         self.title_entry.grid(row=6, column=1, pady=5)
 
         # x label
-        xlabel_label = tk.Label(controls_frame, text="X Label:", font=("Arial", 12), bg="#f0f0f0")
+        xlabel_label = tk.Label(controls_frame, text="X Label:", font=("Arial", 12), bg="#f0f0f0", fg="black")
         xlabel_label.grid(row=7, column=0, sticky="w")
-        self.xlabel_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30)
+        self.xlabel_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30, bg="white", fg="black", bd=1, highlightthickness=0)
         self.xlabel_entry.grid(row=7, column=1, pady=5)
 
         # y label
-        ylabel_label = tk.Label(controls_frame, text="Y Label:", font=("Arial", 12), bg="#f0f0f0")
+        ylabel_label = tk.Label(controls_frame, text="Y Label:", font=("Arial", 12), bg="#f0f0f0", fg="black")
         ylabel_label.grid(row=8, column=0, sticky="w")
-        self.ylabel_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30)
+        self.ylabel_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30, bg="white", fg="black", bd=1, highlightthickness=0)
         self.ylabel_entry.grid(row=8, column=1, pady=5)
 
         # Plot & analyze buttons
