@@ -758,27 +758,27 @@ class CSVPlotterApp:
             )
             save_button.pack(pady=(20, 10))
 
-    def save_heatmap_settings(self, window):
-        # Collect selected variables
-        selected_variables = [var for var, toggle in self.heatmap_variable_toggles.items() if toggle.get()]
-        self.plotter.heatmap_selected_variables = selected_variables
-        window.destroy()  # Close the advanced settings window
+            def save_heatmap_settings(self, window):
+                # Collect selected variables
+                selected_variables = [var for var, toggle in self.heatmap_variable_toggles.items() if toggle.get()]
+                self.plotter.heatmap_selected_variables = selected_variables
+                window.destroy()  # Close the advanced settings window
 
-    def select_line_color(self, which):
-        """
-        Opens a color chooser to select a color for the line or markers.
+            def select_line_color(self, which):
+                """
+                Opens a color chooser to select a color for the line or markers.
 
-        Args:
-            which (str): Either 'line' or 'marker', determining which color to set.
-        """
-        color = colorchooser.askcolor(title=f"Select {which.capitalize()} Color")[1]
-        if color:
-            if which == "line":
-                self.plotter.line_color = color
-                self.line_color_display.config(bg=color)
-            elif which == "marker":
-                self.plotter.marker_color = color
-                self.marker_color_display.config(bg=color)
+                Args:
+                    which (str): Either 'line' or 'marker', determining which color to set.
+                """
+                color = colorchooser.askcolor(title=f"Select {which.capitalize()} Color")[1]
+                if color:
+                    if which == "line":
+                        self.plotter.line_color = color
+                        self.line_color_display.config(bg=color)
+                    elif which == "marker":
+                        self.plotter.marker_color = color
+                        self.marker_color_display.config(bg=color)
         
         
         # advanced menu for bar plot with 1 categorical and 1 numerical variables
