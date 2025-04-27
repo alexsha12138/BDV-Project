@@ -668,6 +668,43 @@ class CSVPlotterApp:
         col2 = self.column2_combo.get()
         col3 = self.column3_combo.get()
 
+        # Advanced settings for Heat Map
+        if self.plot_type_combo.get() == "Heat Map":
+            heatmap_label = tk.Label(adv_window, text="Heat Map Variables", font=("Arial", 12), bg="#f0f0f0",
+                                     fg="black")
+            heatmap_label.pack(pady=10)
+
+            # Frame to hold toggles
+            toggle_frame = tk.Frame(adv_window, bg="#f0f0f0")
+            toggle_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+            # Create a dictionary to hold variable toggles
+            self.heatmap_variable_toggles = {}
+
+            # Generate checkbuttons for each variable
+            for variable in self.columns:
+                var_toggle = tk.BooleanVar(value=True)  # Default to selected
+                toggle = tk.Checkbutton(toggle_frame, text=variable, variable=var_toggle, font=("Arial", 12),
+                                        bg="#f0f0f0", fg="black", anchor="w")
+                toggle.pack(fill="x", anchor="w", padx=5, pady=2)
+                self.heatmap_variable_toggles[variable] = var_toggle
+
+            # Save button
+            save_button = tk.Button(
+                adv_window,
+                text="Save",
+                font=("Arial", 12),
+                command=lambda: self.save_heatmap_settings(adv_window)
+            )
+            save_button.pack(pady=(20, 10))
+
+    def save_heatmap_settings(self, window):
+        # Collect selected variables
+        selected_variables = [var for var, toggle in self.heatmap_variable_toggles.items() if toggle.get()]
+        self.plotter.heatmap_selected_variables = selected_variables
+        window.destroy()  # Close the advanced settings window
+
+
         if self.plot_type_combo.get() == "Line":
             Line_label = tk.Label(adv_window, text="Line Graph", font=("Arial", 12), bg="#f0f0f0", fg="black")
             Line_label.pack(pady=0)
