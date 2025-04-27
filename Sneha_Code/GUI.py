@@ -348,6 +348,7 @@ class CSVPlotterApp:
         col1 = self.column1_combo.get()
         col2 = self.column2_combo.get()
 
+
         if plot_type == "Scatter" and col1 and col2:
             from scipy.stats import linregress
             slope, intercept, r_value, p_value, std_err = linregress(self.df[col1], self.df[col2])

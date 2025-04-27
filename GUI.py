@@ -411,7 +411,33 @@ class CSVPlotterApp:
         col2 = self.column2_combo.get()
         col3 = self.column3_combo.get()
 
-        if plot_type == "Scatter" and col1 and col2:
+        if plot_type == "Scatter" and col1 and col2 and col3:
+            try:
+                # Line of best fit, R, and R² for col2 (first Y variable)
+                slope1, intercept1, r_value1, p_value1, std_err1 = linregress(self.df[col1], self.df[col2])
+                equation1 = f"y = {slope1:.2f}x + {intercept1:.2f}"
+                r_squared1 = r_value1 ** 2
+
+                # Line of best fit, R, and R² for col3 (second Y variable)
+                slope2, intercept2, r_value2, p_value2, std_err2 = linregress(self.df[col1], self.df[col3])
+                equation2 = f"y = {slope2:.2f}x + {intercept2:.2f}"
+                r_squared2 = r_value2 ** 2
+
+                # Display results in a message box
+                results = (
+                    f"Line of Best Fit for {col2}:\n"
+                    f"  Equation: {equation1}\n"
+                    f"  R: {r_value1:.2f}\n"
+                    f"  R²: {r_squared1:.2f}\n\n"
+                    f"Line of Best Fit for {col3}:\n"
+                    f"  Equation: {equation2}\n"
+                    f"  R: {r_value2:.2f}\n"
+                    f"  R²: {r_squared2:.2f}"
+                )
+                messagebox.showinfo("Analysis Results", results)
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to analyze data: {str(e)}")
+        elif plot_type == "Scatter" and col1 and col2:
 
             slope, intercept, r_value, p_value, std_err = linregress(self.df[col1], self.df[col2])
             equation = f"y = {slope:.2f}x + {intercept:.2f}"
