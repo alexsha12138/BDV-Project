@@ -34,6 +34,7 @@ class PlotManager:
         self.show_equation = False
         self.show_r = False
         self.show_r2 = False
+        self.show_legend = False
 
         # box
         self.show_outliers = True
@@ -283,7 +284,10 @@ class PlotManager:
             ax2.legend(handles=handles1 + handles2, labels=labels1 + labels2, loc="upper right")  # Combine legends
         else:
             # Add legend for a single y-variable
-            plt.legend(loc="upper right")
+            if self.show_legend:
+                plt.legend(loc="upper right")  # Show the legend
+            else:
+                plt.gca().legend().remove()  # Hide the legend
 
         # Set labels for the primary y-axis and x-axis
         plt.xlabel(col1)

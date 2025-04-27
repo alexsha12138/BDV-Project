@@ -645,6 +645,12 @@ class CSVPlotterApp:
 
 
         # options for scatterplot
+        #3 var scatter
+        elif self.plot_type_combo.get() == "Scatter" and col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:
+            no_settings_label = tk.Label(adv_window, text="None for this plot", font=("Arial", 12), bg="#f0f0f0", fg="black")
+            no_settings_label.pack(pady=20)
+        
+        #2 var scatter
         elif self.plot_type_combo.get() == "Scatter":
             Line_label = tk.Label(adv_window, text="Scatter Plot", font=("Arial", 12), bg="#f0f0f0", fg="black")
             Line_label.pack(pady=0)
@@ -666,9 +672,6 @@ class CSVPlotterApp:
                 state = "normal" if best_fit_var.get() else "disabled"
                 ci_checkbox.config(state=state)
                 equation_checkbox.config(state=state)
-
-            def save_scatter_settings():
-                self.plotter.show_best_fit = best_fit_var.get()
 
             # Checkbox for "Exclude Confidence Interval"
             ci_var = tk.BooleanVar(value=not self.plotter.show_confidence_interval)  # Default to include CI
@@ -702,12 +705,18 @@ class CSVPlotterApp:
                                          font=("Arial", 12), bg="#f0f0f0", fg="black", state="normal")
             r2_checkbox.pack(pady=10, padx=20, anchor="w")
 
+            #Toggle Legend
+            legend_var = tk.BooleanVar(value=self.plotter.show_legend)  # Default value for legend visibility
+            legend_checkbox = tk.Checkbutton(adv_window, text="Toggle Legend", variable=legend_var, font=("Arial", 12), bg="#f0f0f0", fg="black")       
+            legend_checkbox.pack(pady=10, padx=20, anchor="w")
+
             def save_scatter_settings():
                 self.plotter.show_best_fit = best_fit_var.get()
                 self.plotter.show_confidence_interval = not ci_var.get()
                 self.plotter.show_equation = equation_var.get()
                 self.plotter.show_r = r_var.get()
                 self.plotter.show_r2 = r2_var.get()
+                self.plotter.show_legend = legend_var.get()
                 adv_window.destroy()
 
             save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_scatter_settings)
