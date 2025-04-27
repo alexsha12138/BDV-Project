@@ -80,7 +80,10 @@ class PlotManager:
                                           anova_bool=self.anova_bool)
 
             elif plot_type == "Scatter":
-                self.plot_scatter(df, col1, col2)
+                if col1 and col2 and col3:
+                    self.plot_scatter(df, col1, col2, col3)
+                elif col1 and col2:
+                    self.plot_scatter(df, col1, col2)
             elif plot_type == "Line":
                 self.plot_line(df, col1, col2)
             elif plot_type == "Pie Chart":
