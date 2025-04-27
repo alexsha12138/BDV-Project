@@ -1194,15 +1194,21 @@ class CSVPlotterApp:
         if plot_type == "Bar":
             info_text = (
                 "Bar Graph Info:\n\n"
-                "- A bar graph is used to compare categories of data.\n\n"
-                "- X-axis: Categorical variable.\n"
-                "- Y-axis: Numerical variable.\n\n"
-                "- Example: Sales by product category."
+                "- A bar graph is used to compare categories of data.\n"
+                "- The bar graph is configured to plot the following:\n"
+                "     - 2 or 3 numerical variables, each as its own category\n"
+                "     - 1 categorical variable and 1 numerical variable\n"
+                "- T-test and ANOVA options are available in advanced settings.\n\n"
+                "- X-axis: Categories.\n"
+                "- Y-axis: Average value.\n\n"
+                "- Example: Recovery rate by Treatment Type."
             )
         elif plot_type == "Scatter":
             info_text = (
                 "Scatter Plot Info:\n\n"
-                "- A scatter plot is used to show relationships between two numerical variables.\n\n"
+                "- A scatter plot is used to show relationships between two numerical variables.\n"
+                "- A third numerical variabled can be added as a second y-axis.\n"
+                "- The R^2 value, line of best fit, and confidence interval can be configured in advanced settings.\n\n"
                 "- X-axis: Numerical variable.\n"
                 "- Y-axis: Numerical variable.\n\n"
                 "- Example: Age vs. Income."
@@ -1219,24 +1225,28 @@ class CSVPlotterApp:
             info_text = (
                 "Pie Chart Info:\n\n"
                 "- A pie chart is used to show proportions of categories.\n\n"
-                "- Only one categorical variable is required.\n\n"
-                "- Example: Market share by company."
+                "- Only one categorical variable input is required.\n"
+                "- Labels for percentage, count, or both can be found in advanced settings.\n\n"
+                "- Example: Gender proportions."
             )
         elif plot_type == "Heat Map":
             info_text = (
                 "Heat Map Info:\n\n"
-                "- A heat map is used to visualize data in a matrix format with color coding.\n\n"
-                "- X-axis: Categorical variable.\n"
-                "- Y-axis: Categorical variable.\n\n"
+                "- A heat map is used to visualize data in a matrix format with color coding.\n"
+                "- The heatmap automatically plots all numerical variables against each other.\n\n"
                 "- Example: Correlation matrix."
             )
         elif plot_type == "Violin Plot":
             info_text = (
                 "Violin Plot Info:\n\n"
-                "- A violin plot is used to show the distribution of numerical data across categories.\n\n"
-                "- X-axis: Categorical variable.\n"
-                "- Y-axis: Numerical variable.\n\n"
-                "- Example: Test scores by class."
+                "- A violin plot is used to compare categories of data.\n"
+                "- The violin plot is configured to plot the following:\n"
+                "     - 2 or 3 numerical variables, each as its own category\n"
+                "     - 1 categorical variable and 1 numerical variable\n"
+                "- T-test and ANOVA options are available in advanced settings.\n\n"
+                "- X-axis: Categories.\n"
+                "- Y-axis: Average value.\n\n"
+                "- Example: Recovery rate by Treatment Type."
             )
         elif plot_type == "Box Plot":
             info_text = (
