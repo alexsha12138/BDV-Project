@@ -1,0 +1,13 @@
+# Ignore PyInstaller build artifacts
+build/
+dist/
+*.spec
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# (Optional) Ignore virtual environment folder if you have one
+venv/
+.env/
