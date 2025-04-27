@@ -7,12 +7,13 @@ from Plotter import PlotManager
 from scipy.stats import linregress
 import scipy.stats as stats
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
+import pyfiglet
 
 class CSVPlotterApp:
     def __init__(self, root):
         self.root = root
         self.root.title("FigStat")
-        self.root.geometry("1000x650")
+        self.root.geometry("1000x720")
         self.root.configure(bg="#f0f0f0")
 
         style = ttk.Style()
@@ -53,7 +54,9 @@ class CSVPlotterApp:
 
     def create_widgets(self):
         # Title label
-        label = tk.Label(self.root, text="FigStat", font=("Helvetica", 18, "bold"), bg="#f0f0f0", fg="black")
+        ascii_art = pyfiglet.figlet_format("figStat", font="doom").strip("\n")
+        label = tk.Label(self.root, text=ascii_art, font=("Courier", 10), bg="#f0f0f0", fg="black", justify="left")
+        #label = tk.Label(self.root, text="FigStat", font=("Helvetica", 18, "bold"), bg="#f0f0f0", fg="black")
         label.pack(pady=(30, 10))
 
         # Horizontal line divider
@@ -462,12 +465,12 @@ class CSVPlotterApp:
             result_str = f"ANOVA p-value: {p_value_anova:.4e}\n\nTukey HSD Summary:\n{tukey.summary().as_text()}"
             messagebox.showinfo("Statistical Results", result_str)
 
-        elif (
-                plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.numeric_columns and col2 in self.numeric_columns and not col3:
+        elif (plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.numeric_columns and col2 in self.numeric_columns and not col3:
             try:
                 # Perform one-sample t-tests
-                t_stat1, p_value1 = stats.ttest_1samp(self.df[col1].dropna(), 0)
-                t_stat2, p_value2 = stats.ttest_1samp(self.df[col2].dropna(), 0)
+                t_stat1, p_value1 = stats.ttest_1samp(self.df[col1].dropna(), self.plotter.t1_ref1)
+                t_stat2, p_value2 = stats.ttest_1samp(self.df[col2].dropna(), self.plotter.t1_ref2)
+                print(p_value1, p_value2)
 
                 # Perform two-sample t-test
                 t_stat_two_sample, p_value_two_sample = stats.ttest_ind(self.df[col1].dropna(), self.df[col2].dropna())
@@ -488,8 +491,7 @@ class CSVPlotterApp:
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to perform t-tests: {str(e)}")
 
-        elif (
-                plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.categorical_columns and col2 in self.numeric_columns and not col3:
+        elif (plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.categorical_columns and col2 in self.numeric_columns and not col3:
 
             if len(self.df[col1].unique()) == 2:
                 try:
@@ -1212,7 +1214,9 @@ class CSVPlotterApp:
             self.plot_type_combo.set("")
 
             if col1 in self.numeric_columns and col2 == "" and col3 == "":
-                self.plot_type_combo["values"] = ["Histogram", "Pie Chart"]
+                self.plot_type_combo["values"] = ["Histogram"]
+            elif col1 in self.categorical_columns and col2 == "" and col3 == "":
+                self.plot_type_combo["values"] = ["Pie Chart"]
             elif col1 == "" and col2 == "" and col3 == "":
                 self.plot_type_combo["values"] = ["Pair Plot", "Heat Map"]
             elif col1 in self.numeric_columns and col2 in self.categorical_columns:
