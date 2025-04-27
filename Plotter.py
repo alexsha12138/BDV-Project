@@ -328,6 +328,14 @@ class PlotManager:
                      bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
 
     def plot_line(self, df, col1, col2):
+        """
+        Plots a line graph with optional markers and customizable colors.
+
+        Args:
+            df (pd.DataFrame): The data to plot.
+            col1 (str): The x-axis variable.
+            col2 (str or None): The y-axis variable. If None, all numerical columns are plotted.
+        """
         # Sort the DataFrame by the x-axis column (col1) in ascending order
         sorted_df = df.sort_values(by=col1)
 
@@ -335,17 +343,31 @@ class PlotManager:
         if col2 is None:
             for column in df.columns:
                 if column != col1 and pd.api.types.is_numeric_dtype(df[column]):
-                    plt.plot(sorted_df[col1], sorted_df[column],
-                             marker='o' if self.show_markers else None,
-                             color=self.line_color,
-                             markerfacecolor=self.marker_color,
-                             label=column)
+                    plt.plot(
+                        sorted_df[col1],
+                        sorted_df[column],
+                        marker='o' if self.show_markers else None,  # Markers based on toggle
+                        color=self.line_color,  # Line color
+                        markerfacecolor=self.marker_color if self.show_markers else None,  # Marker color
+                        label=column
+                    )
             plt.legend()
         else:
-            plt.plot(sorted_df[col1], sorted_df[col2],
-                     marker='o' if self.show_markers else None,
-                     color=self.line_color,
-                     markerfacecolor=self.marker_color)
+            plt.plot(
+                sorted_df[col1],
+                sorted_df[col2],
+                marker='o' if self.show_markers else None,  # Markers based on toggle
+                color=self.line_color,  # Line color
+                markerfacecolor=self.marker_color if self.show_markers else None  # Marker color
+            )
+
+        # Add labels and finalize the plot
+        plt.xlabel(col1)
+        plt.ylabel(col2 or "Values")
+        plt.title(f"Line Plot of {col1} vs {col2}" if col2 else f"Line Plot of {col1}")
+        plt.tight_layout()
+
+
 
     def plot_pie(self, df, col1, ax):
         counts = df[col1].value_counts()
