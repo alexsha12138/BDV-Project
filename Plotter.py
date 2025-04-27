@@ -383,15 +383,23 @@ class PlotManager:
             ax.legend(wedges, labels, title=col1, loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
 
     def plot_heatmap(self, df):
+        # Check if a list of selected variables is present
+        if hasattr(self, 'heatmap_selected_variables') and self.heatmap_selected_variables:
+            selected_variables = self.heatmap_selected_variables
+            # Filter the DataFrame to include only the selected variables
+            numeric_df = df[selected_variables].select_dtypes(include=['number'])
+        else:
+            # Default to using all numerical variables if no selection is made
+            numeric_df = df.select_dtypes(include=['number'])
+
+        if numeric_df.empty:
+            raise ValueError("No numeric data available for heatmap. Please select valid variables.")
+
         # Create colormap from selected colors
         self.heatmap_cmap = LinearSegmentedColormap.from_list(
             "custom_heatmap",
             [self.heatmap_low_color, self.heatmap_high_color]
         )
-
-        numeric_df = df.select_dtypes(include=['number'])
-        if numeric_df.empty:
-            raise ValueError("No numeric data available for heatmap.")
 
         plt.figure(figsize=(10, 8))
         sns.heatmap(numeric_df.corr(), annot=True, cmap=self.heatmap_cmap, fmt=".2f")
