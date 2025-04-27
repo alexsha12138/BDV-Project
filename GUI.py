@@ -8,7 +8,6 @@ from scipy.stats import linregress
 import scipy.stats as stats
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
-
 class CSVPlotterApp:
     def __init__(self, root):
         self.root = root
@@ -24,19 +23,19 @@ class CSVPlotterApp:
         style.configure("TEntry", fieldbackground="white", background="white", foreground="black")
 
         style.map("TCombobox",
-            fieldbackground=[
-                ("disabled", "#d9d9d9"),   # Light gray when disabled
-                ("readonly", "white")      # White when selection is made
-            ],
-            background=[
-                ("disabled", "#d9d9d9"),   # Light gray border when disabled
-                ("readonly", "white")      # White background otherwise
-            ],
-            foreground=[
-                ("disabled", "gray"),      # Gray text when disabled
-                ("readonly", "black")      # Black text when selected
-            ]
-        )
+                  fieldbackground=[
+                      ("disabled", "#d9d9d9"),  # Light gray when disabled
+                      ("readonly", "white")  # White when selection is made
+                  ],
+                  background=[
+                      ("disabled", "#d9d9d9"),  # Light gray border when disabled
+                      ("readonly", "white")  # White background otherwise
+                  ],
+                  foreground=[
+                      ("disabled", "gray"),  # Gray text when disabled
+                      ("readonly", "black")  # Black text when selected
+                  ]
+                  )
 
         self.df = None
         self.columns = []
@@ -105,7 +104,8 @@ class CSVPlotterApp:
         controls_frame.pack(side="left", padx=(20, 0), anchor="center")
 
         # First column dropdown
-        column1_label = tk.Label(controls_frame, text="Select first variable:", font=("Arial", 12), bg="#f0f0f0", fg="black")
+        column1_label = tk.Label(controls_frame, text="Select first variable:", font=("Arial", 12), bg="#f0f0f0",
+                                 fg="black")
         column1_label.grid(row=0, column=0, sticky="w")
 
         self.column1_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12))
@@ -113,7 +113,8 @@ class CSVPlotterApp:
         self.column1_combo.bind("<<ComboboxSelected>>", self.update_plot_selection)
 
         # Second column dropdown
-        column2_label = tk.Label(controls_frame, text="Select second variable:", font=("Arial", 12), bg="#f0f0f0", fg="black")
+        column2_label = tk.Label(controls_frame, text="Select second variable:", font=("Arial", 12), bg="#f0f0f0",
+                                 fg="black")
         column2_label.grid(row=1, column=0, sticky="w")
 
         self.column2_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12))
@@ -121,15 +122,17 @@ class CSVPlotterApp:
         self.column2_combo.bind("<<ComboboxSelected>>", self.update_plot_selection)
 
         # Third column dropdown
-        column3_label = tk.Label(controls_frame, text="Select third variable:", font=("Arial", 12), bg="#f0f0f0", fg="black")
+        column3_label = tk.Label(controls_frame, text="Select third variable:", font=("Arial", 12), bg="#f0f0f0",
+                                 fg="black")
         column3_label.grid(row=2, column=0, sticky="w")
 
         self.column3_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12))
         self.column3_combo.grid(row=2, column=1, pady=5)
         self.column3_combo.bind("<<ComboboxSelected>>", self.update_plot_selection)
-        
+
         # Plot type dropdown
-        plot_type_label = tk.Label(controls_frame, text="Select plot type:", font=("Arial", 12), bg="#f0f0f0", fg="black")
+        plot_type_label = tk.Label(controls_frame, text="Select plot type:", font=("Arial", 12), bg="#f0f0f0",
+                                   fg="black")
         plot_type_label.grid(row=3, column=0, sticky="w")
 
         self.plot_type_combo = ttk.Combobox(controls_frame, state="disabled", font=("Arial", 12),
@@ -137,7 +140,7 @@ class CSVPlotterApp:
         self.plot_type_combo.grid(row=3, column=1, pady=5)
         self.plot_type_combo.bind("<<ComboboxSelected>>", self.plot_type_selected)
 
-        #HEATMAP (from lines 116-152)
+        # HEATMAP
         # Add color selection frame for heatmap
         self.color_selection_frame = tk.Frame(self.root, bg="#f0f0f0")
         self.color_selection_frame.pack_forget()  # Hidden by default
@@ -218,25 +221,31 @@ class CSVPlotterApp:
         font_frame = tk.Frame(controls_frame, bg="#f0f0f0")
         font_frame.grid(row=4, column=0, columnspan=2, pady=5, sticky="w")
 
-        title_font_label = tk.Label(font_frame, text="Title Font:", font=("Arial", 12), bg="#f0f0f0", fg="black", bd=1, highlightthickness=0)
+        title_font_label = tk.Label(font_frame, text="Title Font:", font=("Arial", 12), bg="#f0f0f0", fg="black", bd=1,
+                                    highlightthickness=0)
         title_font_label.pack(side="left", padx=(0, 5))
-        self.title_font_entry = tk.Entry(font_frame, font=("Arial", 12), width=5, bg="white", fg="black", bd=1, highlightthickness=0)
+        self.title_font_entry = tk.Entry(font_frame, font=("Arial", 12), width=5, bg="white", fg="black", bd=1,
+                                         highlightthickness=0)
         self.title_font_entry.insert(0, "14")  # Set default value to 14
         self.title_font_entry.pack(side="left", padx=(0, 10))
 
-        text_font_label = tk.Label(font_frame, text="Text Font:", font=("Arial", 12), bg="#f0f0f0", fg="black", bd=1, highlightthickness=0)
+        text_font_label = tk.Label(font_frame, text="Text Font:", font=("Arial", 12), bg="#f0f0f0", fg="black", bd=1,
+                                   highlightthickness=0)
         text_font_label.pack(side="left", padx=(0, 5))
-        self.text_font_entry = tk.Entry(font_frame, font=("Arial", 12), width=5, bg="white", fg="black", bd=1, highlightthickness=0)
+        self.text_font_entry = tk.Entry(font_frame, font=("Arial", 12), width=5, bg="white", fg="black", bd=1,
+                                        highlightthickness=0)
         self.text_font_entry.insert(0, "12")  # Set default value to 12
         self.text_font_entry.pack(side="left", padx=(0, 5))
 
         # Graph info Button
         button_row = tk.Frame(controls_frame, bg="#f0f0f0")
-        button_row.grid(row=4, column=1, columnspan=2, pady=5, sticky="e")
+        button_row.grid(row=3, column=0, columnspan=1, pady=5, sticky="e")
 
-        self.graph_info = tk.Button(button_row, text="Graph Info", font=("Arial", 12), state="normal", width=10,
-            command=self.graph_info)
-        self.graph_info.pack(side="right", padx=38)  # Increased padding on the right side
+        self.graph_info = tk.Button(button_row, text="i", font=("Arial", 12, "bold"), state="normal", width=2, height = 1,
+                                    command=self.graph_info, bg = "#1E90FF", fg = "white", relief = "flat", bd=0, highlightthickness=0,padx=0,pady=0)
+        self.graph_info.config(highlightbackground="#1E90FF",activebackground="#1E90FF",activeforeground="white")
+        self.graph_info.pack(side="right", padx=5)  # Increased padding on the right side
+        self.graph_info.bind("<Map>", lambda e: e.widget.config(relief="flat"))
 
         # Resolution entries
         res_label = tk.Label(controls_frame, text="Resolution:", font=("Arial", 12), bg="#f0f0f0", fg="black")
@@ -245,33 +254,38 @@ class CSVPlotterApp:
         res_frame = tk.Frame(controls_frame, bg="#f0f0f0")
         res_frame.grid(row=5, column=1, pady=(20, 5), sticky="w")
 
-        self.xres_entry = tk.Entry(res_frame, font=("Arial", 12), width=8, bg="white", fg="black", bd=1, highlightthickness=0)
+        self.xres_entry = tk.Entry(res_frame, font=("Arial", 12), width=8, bg="white", fg="black", bd=1,
+                                   highlightthickness=0)
         self.xres_entry.insert(0, "1280")
         self.xres_entry.pack(side="left")
 
         x_label = tk.Label(res_frame, text="x", font=("Arial", 12), bg="#f0f0f0", fg="black")
         x_label.pack(side="left", padx=(5, 5))
 
-        self.yres_entry = tk.Entry(res_frame, font=("Arial", 12), width=8, bg="white", fg="black", bd=1, highlightthickness=0)
+        self.yres_entry = tk.Entry(res_frame, font=("Arial", 12), width=8, bg="white", fg="black", bd=1,
+                                   highlightthickness=0)
         self.yres_entry.insert(0, "720")
         self.yres_entry.pack(side="left")
 
         # Custom title and label
         title_label = tk.Label(controls_frame, text="Title:", font=("Arial", 12), bg="#f0f0f0", fg="black")
         title_label.grid(row=6, column=0, sticky="w")
-        self.title_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30, bg="white", fg="black", bd=1, highlightthickness=0)
+        self.title_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30, bg="white", fg="black", bd=1,
+                                    highlightthickness=0)
         self.title_entry.grid(row=6, column=1, pady=5)
 
         # x label
         xlabel_label = tk.Label(controls_frame, text="X Label:", font=("Arial", 12), bg="#f0f0f0", fg="black")
         xlabel_label.grid(row=7, column=0, sticky="w")
-        self.xlabel_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30, bg="white", fg="black", bd=1, highlightthickness=0)
+        self.xlabel_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30, bg="white", fg="black", bd=1,
+                                     highlightthickness=0)
         self.xlabel_entry.grid(row=7, column=1, pady=5)
 
         # y label
         ylabel_label = tk.Label(controls_frame, text="Y Label:", font=("Arial", 12), bg="#f0f0f0", fg="black")
         ylabel_label.grid(row=8, column=0, sticky="w")
-        self.ylabel_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30, bg="white", fg="black", bd=1, highlightthickness=0)
+        self.ylabel_entry = tk.Entry(controls_frame, font=("Arial", 12), width=30, bg="white", fg="black", bd=1,
+                                     highlightthickness=0)
         self.ylabel_entry.grid(row=8, column=1, pady=5)
 
         # Plot & analyze buttons
@@ -354,7 +368,6 @@ class CSVPlotterApp:
                 messagebox.showerror("Error", f"Failed to create pairplot: {str(e)}")
             return
 
-        # Existing logic for other plot types
         col1 = self.column1_combo.get()
         col2 = self.column2_combo.get()
         col3 = self.column3_combo.get()
@@ -373,21 +386,21 @@ class CSVPlotterApp:
         except ValueError:
             messagebox.showerror("Error", "Invalid resolution value(s)!")
             return
-        
+
         try:
             title_font = int(self.title_font_entry.get())
             text_font = int(self.text_font_entry.get())
         except ValueError:
             messagebox.showerror("Error", "Invalid font size value(s)!")
             return
-        
 
         title = self.title_entry.get()
         xlabel = self.xlabel_entry.get()
         ylabel = self.ylabel_entry.get()
 
         self.plotter.plot(self.df, plot_type, col1 if col1 else None, col2 if col2 else None, col3 if col3 else None,
-                          xres, yres, title=title, xlabel=xlabel, ylabel=ylabel, title_font=title_font, text_font=text_font)
+                          xres, yres, title=title, xlabel=xlabel, ylabel=ylabel, title_font=title_font,
+                          text_font=text_font)
 
         self.plot_done = True  # this is for updating the analyze button
         self.analyze_button.config(state="normal")
@@ -399,13 +412,14 @@ class CSVPlotterApp:
         col3 = self.column3_combo.get()
 
         if plot_type == "Scatter" and col1 and col2:
-            
+
             slope, intercept, r_value, p_value, std_err = linregress(self.df[col1], self.df[col2])
             equation = f"y = {slope:.2f}x + {intercept:.2f}"
             messagebox.showinfo("Line of Best Fit", f"Equation: {equation}\nR: {r_value:.2f}\nR²: {r_value ** 2:.2f}")
-        
-        elif (plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:            
-            
+
+        elif (
+                plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:
+
             # Calculate stats
             anova_result = stats.f_oneway(self.df[col1], self.df[col2], self.df[col3])
             p_value_anova = anova_result.pvalue
@@ -422,8 +436,8 @@ class CSVPlotterApp:
             result_str = f"ANOVA p-value: {p_value_anova:.4e}\n\nTukey HSD Summary:\n{tukey.summary().as_text()}"
             messagebox.showinfo("Statistical Results", result_str)
 
-
-        elif (plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.numeric_columns and col2 in self.numeric_columns and not col3:
+        elif (
+                plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.numeric_columns and col2 in self.numeric_columns and not col3:
             try:
                 # Perform one-sample t-tests
                 t_stat1, p_value1 = stats.ttest_1samp(self.df[col1].dropna(), 0)
@@ -448,7 +462,8 @@ class CSVPlotterApp:
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to perform t-tests: {str(e)}")
 
-        elif (plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.categorical_columns and col2 in self.numeric_columns and not col3:
+        elif (
+                plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.categorical_columns and col2 in self.numeric_columns and not col3:
 
             if len(self.df[col1].unique()) == 2:
                 try:
@@ -573,9 +588,8 @@ class CSVPlotterApp:
             self.show_scrollable_results("\n\n".join(results))
             return
         # elif col1 and col2 and plot_type in ["Pie Chart", "Heat Map", "Histogram"]:
-            ## self.plotter.perform_stat_test(self.df, col1, col2)
-        
-    
+        ## self.plotter.perform_stat_test(self.df, col1, col2)
+
         else:
             messagebox.showinfo("Analysis", "Statistical analysis is unavailable for this plot type.")
 
@@ -620,7 +634,8 @@ class CSVPlotterApp:
         adv_window.title("Advanced Settings")
         adv_window.configure(bg="#f0f0f0")
 
-        label = tk.Label(adv_window, text="       Advanced Settings       ", font=("Arial", 16), bg="#f0f0f0", fg="black")
+        label = tk.Label(adv_window, text="       Advanced Settings       ", font=("Arial", 16), bg="#f0f0f0",
+                         fg="black")
         label.pack(pady=0)
 
         col1 = self.column1_combo.get()
@@ -631,15 +646,37 @@ class CSVPlotterApp:
             Line_label = tk.Label(adv_window, text="Line Graph", font=("Arial", 12), bg="#f0f0f0", fg="black")
             Line_label.pack(pady=0)
 
+            # Add toggle for showing markers
+            show_markers_var = tk.BooleanVar(
+                value=self.plotter.show_markers if hasattr(self.plotter, 'show_markers') else True)
+            show_markers_checkbox = tk.Checkbutton(
+                adv_window,
+                text="Show Markers",
+                variable=show_markers_var,
+                font=("Arial", 12),
+                bg="#f0f0f0",
+                fg="black"
+            )
+            show_markers_checkbox.pack(pady=10)
+
+            def save_line_settings():
+                self.plotter.show_markers = show_markers_var.get()
+                adv_window.destroy()
+
+            save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_line_settings)
+            save_button.pack(pady=(20, 10))
+
         # advanced menu for bar plot with 1 categorical and 1 numerical variables
         elif self.plot_type_combo.get() == "Bar" and col1 in self.categorical_columns and col2 in self.numeric_columns:
             Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0", fg="black")
             Line_label.pack(pady=0)
 
             # Entry box for input category names
-            input_cat_label = tk.Label(adv_window, text="Input Group (separated by \",\"): ", font=("Arial", 13), bg="#f0f0f0", fg="black")
+            input_cat_label = tk.Label(adv_window, text="Input Group (separated by \",\"): ", font=("Arial", 13),
+                                       bg="#f0f0f0", fg="black")
             input_cat_label.pack(pady=10)
-            input_cat_entry = tk.Entry(adv_window, font=("Arial", 12), width=20, bg="white", fg="black", bd=1, highlightthickness=0)
+            input_cat_entry = tk.Entry(adv_window, font=("Arial", 12), width=20, bg="white", fg="black", bd=1,
+                                       highlightthickness=0)
             input_cat_entry.pack(pady=10)
             input_cat_entry.insert(0, self.plotter.input_cat)
 
@@ -673,15 +710,19 @@ class CSVPlotterApp:
             t1_marker_checkbox.pack(pady=10)
 
             # reference values for 1 sample t-test
-            t1_col1_ref_lab = tk.Label(adv_window, text="Variable 1 reference value:", font=("Arial", 12), bg="#f0f0f0", fg="black")
+            t1_col1_ref_lab = tk.Label(adv_window, text="Variable 1 reference value:", font=("Arial", 12), bg="#f0f0f0",
+                                       fg="black")
             t1_col1_ref_lab.pack(pady=0)
-            t1_col1_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1, highlightthickness=0)
+            t1_col1_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1,
+                                         highlightthickness=0)
             t1_col1_ref_entry.pack(pady=10)
             t1_col1_ref_entry.insert(0, str(self.plotter.t1_ref1))
 
-            t1_col2_ref_lab = tk.Label(adv_window, text="Variable 2 reference value:", font=("Arial", 12), bg="#f0f0f0", fg="black")
+            t1_col2_ref_lab = tk.Label(adv_window, text="Variable 2 reference value:", font=("Arial", 12), bg="#f0f0f0",
+                                       fg="black")
             t1_col2_ref_lab.pack(pady=0)
-            t1_col2_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1, highlightthickness=0)
+            t1_col2_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1,
+                                         highlightthickness=0)
             t1_col2_ref_entry.pack(pady=10)
             t1_col2_ref_entry.insert(0, str(self.plotter.t1_ref2))
 
@@ -719,18 +760,19 @@ class CSVPlotterApp:
                 font=("Arial", 12),
                 command=lambda: self.save_advanced_settings({
                     'anova_bool': (anova_bool, bool),
-                }, window= adv_window, confirmation_text="Violin plot settings saved.")
+                }, window=adv_window, confirmation_text="Violin plot settings saved.")
             )
             save_button.pack(pady=(20, 10))
 
 
         # options for scatterplot
-        #3 var scatter
+        # 3 var scatter
         elif self.plot_type_combo.get() == "Scatter" and col1 in self.numeric_columns and col2 in self.numeric_columns and col3 in self.numeric_columns:
-            no_settings_label = tk.Label(adv_window, text="None for this plot", font=("Arial", 12), bg="#f0f0f0", fg="black")
+            no_settings_label = tk.Label(adv_window, text="None for this plot", font=("Arial", 12), bg="#f0f0f0",
+                                         fg="black")
             no_settings_label.pack(pady=20)
-        
-        #2 var scatter
+
+        # 2 var scatter
         elif self.plot_type_combo.get() == "Scatter":
             Line_label = tk.Label(adv_window, text="Scatter Plot", font=("Arial", 12), bg="#f0f0f0", fg="black")
             Line_label.pack(pady=0)
@@ -785,9 +827,10 @@ class CSVPlotterApp:
                                          font=("Arial", 12), bg="#f0f0f0", fg="black", state="normal")
             r2_checkbox.pack(pady=10, padx=20, anchor="w")
 
-            #Toggle Legend
+            # Toggle Legend
             legend_var = tk.BooleanVar(value=self.plotter.show_legend)  # Default value for legend visibility
-            legend_checkbox = tk.Checkbutton(adv_window, text="Toggle Legend", variable=legend_var, font=("Arial", 12), bg="#f0f0f0", fg="black")       
+            legend_checkbox = tk.Checkbutton(adv_window, text="Toggle Legend", variable=legend_var, font=("Arial", 12),
+                                             bg="#f0f0f0", fg="black")
             legend_checkbox.pack(pady=10, padx=20, anchor="w")
 
             def save_scatter_settings():
@@ -804,7 +847,7 @@ class CSVPlotterApp:
 
         # options for box plot
         elif self.plot_type_combo.get() == "Box Plot":
-            box_label = tk.Label(adv_window, text="Box Plot", font=("Arial", 12), bg="#f0f0f0",fg="black")
+            box_label = tk.Label(adv_window, text="Box Plot", font=("Arial", 12), bg="#f0f0f0", fg="black")
             box_label.pack(pady=0)
 
             outliers_var = tk.BooleanVar(value=self.plotter.show_outliers)
@@ -824,7 +867,8 @@ class CSVPlotterApp:
             Pie_label.pack(pady=0)
 
             # Display Option Dropdown
-            display_label = tk.Label(adv_window, text="Display beside pie sections:", font=("Arial", 12), bg="#f0f0f0", fg="black")
+            display_label = tk.Label(adv_window, text="Display beside pie sections:", font=("Arial", 12), bg="#f0f0f0",
+                                     fg="black")
             display_label.pack(pady=(10, 0))
 
             display_var = tk.StringVar(
@@ -856,19 +900,20 @@ class CSVPlotterApp:
                     'pie_display_option': (display_var, str),
                     'pie_show_labels': (labels_var, bool),
                     'pie_show_legend': (legend_var, bool),
-                }, window = adv_window, confirmation_text="Pie chart settings saved.")
+                }, window=adv_window, confirmation_text="Pie chart settings saved.")
             )
             save_button.pack(pady=(20, 10))
 
         elif self.plot_type_combo.get() == "Histogram":
-            hist_label = tk.Label(adv_window, text="Histogram", font=("Arial", 12), bg="#f0f0f0",fg="black")
+            hist_label = tk.Label(adv_window, text="Histogram", font=("Arial", 12), bg="#f0f0f0", fg="black")
             hist_label.pack(pady=0)
 
             # Number of bins
-            bins_label = tk.Label(adv_window, text="Number of bins:", font=("Arial", 12), bg="#f0f0f0", fg="black") 
+            bins_label = tk.Label(adv_window, text="Number of bins:", font=("Arial", 12), bg="#f0f0f0", fg="black")
             bins_label.pack(pady=(10, 0))
 
-            bins_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1, highlightthickness=0)
+            bins_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1,
+                                  highlightthickness=0)
             bins_entry.pack(pady=5)
             bins_entry.insert(0, str(self.plotter.bin_size))
 
@@ -886,7 +931,7 @@ class CSVPlotterApp:
                 command=lambda: self.save_advanced_settings({
                     'bin_size': (bins_entry, int),
                     'kde_bool': (kde_var, bool),
-                }, window= adv_window, confirmation_text="Histogram settings saved.")
+                }, window=adv_window, confirmation_text="Histogram settings saved.")
             )
             save_button.pack(pady=(20, 10))
 
@@ -899,7 +944,8 @@ class CSVPlotterApp:
             instruction_label.pack(pady=(10, 5))
 
             # Text box for user input
-            pairplot_entry = tk.Entry(adv_window, font=("Arial", 12), width=30, bg="white", fg="black", bd=1, highlightthickness=0)
+            pairplot_entry = tk.Entry(adv_window, font=("Arial", 12), width=30, bg="white", fg="black", bd=1,
+                                      highlightthickness=0)
 
             # Pre-fill the text box with the previously saved value (if any)
             if hasattr(self.plotter, 'pairplot_variables') and self.plotter.pairplot_variables:
@@ -927,13 +973,16 @@ class CSVPlotterApp:
 
             if self.column3_combo.get() == "":
                 if col1 in self.categorical_columns and col2 in self.numeric_columns:
-                    Violin_label_label = tk.Label(adv_window, text="Violin Graph", font=("Arial", 12), bg="#f0f0f0", fg="black")
+                    Violin_label_label = tk.Label(adv_window, text="Violin Graph", font=("Arial", 12), bg="#f0f0f0",
+                                                  fg="black")
                     Violin_label_label.pack(pady=0)
 
                     # Entry box for input category names
-                    input_cat_label = tk.Label(adv_window, text="Input Group (separated by \",\"): ", bg="#f0f0f0", fg="black",)
+                    input_cat_label = tk.Label(adv_window, text="Input Group (separated by \",\"): ", bg="#f0f0f0",
+                                               fg="black", )
                     input_cat_label.pack(pady=10)
-                    input_cat_entry = tk.Entry(adv_window, font=("Arial", 12), width=20, bg="white", fg="black", bd=1, highlightthickness=0)
+                    input_cat_entry = tk.Entry(adv_window, font=("Arial", 12), width=20, bg="white", fg="black", bd=1,
+                                               highlightthickness=0)
                     input_cat_entry.pack(pady=10)
                     input_cat_entry.insert(0, self.plotter.input_cat)
 
@@ -966,20 +1015,23 @@ class CSVPlotterApp:
                     t1_col1_ref_lab = tk.Label(adv_window, text="Variable 1 reference value:", font=("Arial", 12),
                                                bg="#f0f0f0", fg="black")
                     t1_col1_ref_lab.pack(pady=0)
-                    t1_col1_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1, highlightthickness=0)
+                    t1_col1_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1,
+                                                 highlightthickness=0)
                     t1_col1_ref_entry.pack(pady=10)
                     t1_col1_ref_entry.insert(0, str(self.plotter.t1_ref1))
 
-                    t1_col2_ref_lab = tk.Label(adv_window, text="Variable 2 reference value:", font=("Arial", 12), bg="#f0f0f0", fg="black")
+                    t1_col2_ref_lab = tk.Label(adv_window, text="Variable 2 reference value:", font=("Arial", 12),
+                                               bg="#f0f0f0", fg="black")
                     t1_col2_ref_lab.pack(pady=0)
-                    t1_col2_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1, highlightthickness=0)
+                    t1_col2_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1,
+                                                 highlightthickness=0)
                     t1_col2_ref_entry.pack(pady=10)
                     t1_col2_ref_entry.insert(0, str(self.plotter.t1_ref2))
 
                     # check box for 2 sample t-test
                     t2_marker_var = tk.BooleanVar(value=self.plotter.t2_bool)
                     t2_marker_checkbox = tk.Checkbutton(adv_window, text="Plot 2 sample t-test", variable=t2_marker_var,
-                                                        font=("Arial", 12), bg="#f0f0f0",fg="black")
+                                                        font=("Arial", 12), bg="#f0f0f0", fg="black")
                     t2_marker_checkbox.pack(pady=10)
 
                     save_button = tk.Button(
@@ -991,7 +1043,7 @@ class CSVPlotterApp:
                             't2_bool': (t2_marker_var, bool),
                             't1_ref1': (t1_col1_ref_entry, float),
                             't1_ref2': (t1_col2_ref_entry, float),
-                        }, window= adv_window, confirmation_text="Violin plot settings saved.")
+                        }, window=adv_window, confirmation_text="Violin plot settings saved.")
                     )
                     save_button.pack(pady=(20, 10))
 
@@ -1009,11 +1061,12 @@ class CSVPlotterApp:
                     font=("Arial", 12),
                     command=lambda: self.save_advanced_settings({
                         'anova_bool': (anova_var, bool),
-                    }, window= adv_window, confirmation_text="Violin plot settings saved.")
+                    }, window=adv_window, confirmation_text="Violin plot settings saved.")
                 )
                 save_button.pack(pady=(20, 10))
 
-    def save_advanced_settings(self, widget_map, confirmation_text="Advanced settings saved successfully!", window=None):
+    def save_advanced_settings(self, widget_map, confirmation_text="Advanced settings saved successfully!",
+                               window=None):
         for attr, (widget, cast) in widget_map.items():
             try:
                 setattr(self.plotter, attr, cast(widget.get()))
@@ -1027,7 +1080,7 @@ class CSVPlotterApp:
         col2 = self.column2_combo.get()
         col3 = self.column3_combo.get()
 
-            # Reset the plot types if everything is blank
+        # Reset the plot types if everything is blank
         if col1 == "" and col2 == "" and col3 == "":
             self.plot_type_combo["values"] = ["Heat Map", "Pairplot"]
             self.plot_type_combo.set("")
@@ -1102,7 +1155,7 @@ class CSVPlotterApp:
         text_widget.insert("1.0", text)
         text_widget.config(state="disabled")  # Make the Text widget read-only
 
-    #heatmap
+    # heatmap
     def select_color(self, which):
         color = colorchooser.askcolor(title=f"Select {which} color")[1]
         if color:
@@ -1121,8 +1174,6 @@ class CSVPlotterApp:
             self.color_selection_frame.pack(pady=10)
         else:
             self.color_selection_frame.pack_forget()
-
-        # Rest of existing method...
         col1 = self.column1_combo.get()
         col2 = self.column2_combo.get()
         col3 = self.column3_combo.get()
@@ -1134,7 +1185,6 @@ class CSVPlotterApp:
         else:
             self.plot_button.config(state="disabled")
             self.analyze_button.config(state="disabled")
-
 
     def graph_info(self):
         # Get the selected plot type

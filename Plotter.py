@@ -3,15 +3,13 @@ from matplotlib.colors import LinearSegmentedColormap
 import seaborn as sns
 import scipy.stats as stats
 from scipy.stats import linregress
+import mplcursors
 import pandas as pd
 from tkinter import messagebox
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
-
 class PlotManager:
     def __init__(self):
-        # Default advanced settings
-
         # Heatmap settings
         self.heatmap_low_color = "#FFFFFF"  # white
         self.heatmap_high_color = "#0000FF"  # blue
@@ -51,19 +49,18 @@ class PlotManager:
         self.kde_bool = True
         self.bin_size = 20
 
-        #line graph
+        # line graph
         self.line_color = "#1f77b4"  # Default matplotlib blue
         self.marker_color = "#ff7f0e"  # Default matplotlib orange
+        self.show_markers = True  # Default is to show markers
 
     def plot(self, df, plot_type, col1=None, col2=None, col3=None, xres=1280, yres=720, title=None, xlabel=None,
              ylabel=None, title_font=14, text_font=12):
-        # Convert pixel resolution to inches (DPI is typically 100)
         dpi = 100
         width = xres / dpi
         height = yres / dpi
         if plot_type != "Heat Map":
             fig, ax = plt.subplots(figsize=(width, height), dpi=dpi)
-
 
         try:
             if plot_type == "Bar":
@@ -260,14 +257,18 @@ class PlotManager:
             plt.axhline(y=y, color='gray', linestyle='--', linewidth=0.5, alpha=0.7)
 
         if anova_bool:
-
             self.annotate_anova_results(df, sorted_titles, use_mean=True)
 
     def plot_scatter(self, df, col1, col2, col3=None):
         # Plot col2 on the primary y-axis using Seaborn
         sns.scatterplot(data=df, x=col1, y=col2, color="tab:blue", label=col2)
         slope, intercept, r_value, p_value, std_err = linregress(df[col1], df[col2])
+        cursor = mplcursors.cursor(hover=True)
 
+        @cursor.connect("add")
+        def on_add(sel):
+            x, y = sel.target
+            sel.annotation.set_text(f"{col1}: {x:.2f}\n{col2}: {y:.2f}")
         # Create a secondary y-axis if col3 is provided
         if col3:
             ax1 = plt.gca()  # Get the current axes for the primary y-axis
@@ -278,7 +279,7 @@ class PlotManager:
             ax2.set_ylabel(col3, color="tab:orange")
             ax2.tick_params(axis="y", labelcolor="tab:orange")
 
-             # Combine legends from both axes
+            # Combine legends from both axes
             handles1, labels1 = ax1.get_legend_handles_labels()  # Get legend handles and labels from ax1
             handles2, labels2 = ax2.get_legend_handles_labels()  # Get legend handles and labels from ax2
             ax2.legend(handles=handles1 + handles2, labels=labels1 + labels2, loc="upper right")  # Combine legends
@@ -298,14 +299,14 @@ class PlotManager:
             self.line_equation = f"y = {slope:.2f}x + {intercept:.2f}"  # Store the equation
             sns.regplot(x=col1, y=col2, data=df, ci=95 if self.show_confidence_interval else None, scatter=False,
                         line_kws={"color": "red"})
-            
+
         x_pos = df[col1].min() + (df[col1].max() - df[col1].min()) * 0.02  # Slightly offset from the left
-        y_pos = df[col2].max() - (df[col2].max() - df[col2].min()) * 0.02 
+        y_pos = df[col2].max() - (df[col2].max() - df[col2].min()) * 0.02
 
         if self.show_equation and hasattr(self, "line_equation"):
             plt.text(
-                x=x_pos,  
-                y=y_pos, 
+                x=x_pos,
+                y=y_pos,
                 s=self.line_equation,
                 color="red",
                 fontsize=10,
@@ -332,14 +333,14 @@ class PlotManager:
             for column in df.columns:
                 if column != col1 and pd.api.types.is_numeric_dtype(df[column]):
                     plt.plot(sorted_df[col1], sorted_df[column],
-                             marker='o',
+                             marker='o' if self.show_markers else None,
                              color=self.line_color,
                              markerfacecolor=self.marker_color,
                              label=column)
             plt.legend()
         else:
             plt.plot(sorted_df[col1], sorted_df[col2],
-                     marker='o',
+                     marker='o' if self.show_markers else None,
                      color=self.line_color,
                      markerfacecolor=self.marker_color)
 
@@ -457,7 +458,6 @@ class PlotManager:
                         anova_df = pd.DataFrame()
                         for category in unique_categories:
                             anova_df[category] = df[df[col1] == category][col2].reset_index(drop=True)
-                        
 
                         anova_df_max = anova_df.max().max()
 
@@ -465,7 +465,8 @@ class PlotManager:
                         print(anova_df_max)
                         # Perform ANOVA for multiple groups using the restructured DataFrame
                         sorted_categories = avg_df.sort_values(by=f"Average {col2}", ascending=False)[col1].tolist()
-                        self.annotate_anova_results(anova_df, sorted_categories, use_mean=False, anova_df_max=anova_df_max)
+                        self.annotate_anova_results(anova_df, sorted_categories, use_mean=False,
+                                                    anova_df_max=anova_df_max)
                 else:
                     # If input is provided, use the filtered categories
                     if len(input_list_raw) == 2:
@@ -491,7 +492,8 @@ class PlotManager:
                         print(anova_df.head())
                         # Perform ANOVA for multiple groups using the restructured DataFrame
                         anova_df_max = anova_df.max().max()
-                        self.annotate_anova_results(anova_df, sorted_categories.tolist(), use_mean=False, anova_df_max=anova_df_max)
+                        self.annotate_anova_results(anova_df, sorted_categories.tolist(), use_mean=False,
+                                                    anova_df_max=anova_df_max)
 
             plt.title(f'Distribution of {col2} by {col1}')
             plt.ylabel(f'{col2}')
@@ -573,7 +575,6 @@ class PlotManager:
                     sorted_groups = group_means.index.tolist()
                     df_max = df_plot["Value"].max()  # Get the maximum value from the DataFrame
                     self.annotate_anova_results(df, sorted_groups, use_mean=False, anova_df_max=df_max)
-                        
 
     def plot_box(self, df, col1, col2):
         sns.boxplot(x=df[col1], y=df[col2], showfliers=self.show_outliers)
@@ -651,12 +652,12 @@ class PlotManager:
             height = base * (1 + offset)
 
             # Draw significance bars and p-value text
-            plt.plot([i, i, j, j], [height, height + 0.01 * base, height + 0.01 * base, height], color="black", lw=1, zorder=10)
+            plt.plot([i, i, j, j], [height, height + 0.01 * base, height + 0.01 * base, height], color="black", lw=1,
+                     zorder=10)
             plt.plot([i, j], [height + 0.01 * base, height + 0.01 * base], color="black", lw=1, zorder=10)
-            plt.annotate(f"{self.p_val_mark(p_val)} p = {p_val:.3e}", 
-                         xy=((i + j) / 2, height + 0.025 * base), 
+            plt.annotate(f"{self.p_val_mark(p_val)} p = {p_val:.3e}",
+                         xy=((i + j) / 2, height + 0.025 * base),
                          ha="center", fontsize=12, color="black")
-
 
     def annotate_t_test_results(self, var1, var2, t1_bool, t2_bool, t1_ref1, t1_ref2, t2_p, use_mean=True):
         """
