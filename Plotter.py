@@ -374,6 +374,9 @@ class PlotManager:
         labels = counts.index
         sizes = counts.values
 
+        # Generate pastel color palette
+        colors = sns.color_palette("pastel", len(labels))
+
         def autopct_func(pct, allvals=sizes):
             count = int(round(pct / 100. * sum(allvals)))
             if self.pie_display_option == "percentage":
@@ -392,17 +395,20 @@ class PlotManager:
                 sizes,
                 labels=labels if self.pie_show_labels else None,
                 autopct=autopct_func,
-                startangle=90
+                startangle=90,
+                colors=colors  # Apply pastel colors
             )
         else:
             wedges, texts = ax.pie(
                 sizes,
                 labels=labels if self.pie_show_labels else None,
-                startangle=90
+                startangle=90,
+                colors=colors  # Apply pastel colors
             )
 
         if self.pie_show_legend:
-            ax.legend(wedges, labels, title=col1, loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+            legend = ax.legend(wedges, labels, title=col1, loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+            legend.set_title(f"{col1}\n", prop={'weight': 'bold'})  # bold the legend title
 
     def plot_heatmap(self, df):
         # Check if a list of selected variables is present
@@ -727,7 +733,7 @@ class PlotManager:
 
         if t2_bool:
             # Annotate two-sample t-test results
-            two_bar_y *= 1.1
+            two_bar_y *= 1.13
             plt.plot([0, 0, 1, 1], [two_bar_y, two_bar_y * 1.003, two_bar_y * 1.003, two_bar_y], lw=1.5, color='black')
             plt.text(0.5, two_bar_y * 1.03, self.p_val_mark(t2_p), ha="center", va="bottom", fontsize=14)
             plt.text(0.5, two_bar_y * 1.01, f"P: {self.round_num(t2_p)}", ha="center", va="bottom", fontsize=12)
