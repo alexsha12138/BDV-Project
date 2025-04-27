@@ -11,7 +11,7 @@ from statsmodels.stats.multicomp import pairwise_tukeyhsd
 class CSVPlotterApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("CSV Plotter")
+        self.root.title("FigStat")
         self.root.geometry("1000x650")
         self.root.configure(bg="#f0f0f0")
 
@@ -53,7 +53,7 @@ class CSVPlotterApp:
 
     def create_widgets(self):
         # Title label
-        label = tk.Label(self.root, text="CSV Plotter", font=("Helvetica", 18, "bold"), bg="#f0f0f0", fg="black")
+        label = tk.Label(self.root, text="FigStat", font=("Helvetica", 18, "bold"), bg="#f0f0f0", fg="black")
         label.pack(pady=(30, 10))
 
         # Horizontal line divider
