@@ -242,7 +242,7 @@ class CSVPlotterApp:
         button_row.grid(row=3, column=0, columnspan=1, pady=5, sticky="e")
 
         self.graph_info = tk.Button(button_row, text="i", font=("Arial", 12, "bold"), state="normal", width=2, height = 1,
-                                    command=self.graph_info, bg = "#1E90FF", fg = "white", relief = "flat", bd=0, highlightthickness=0,padx=0,pady=0)
+                                    command=self.graph_info, bg = "#1E90FF", fg = "black", relief = "flat", bd=0, highlightthickness=0,padx=0,pady=0)
         self.graph_info.config(highlightbackground="#1E90FF",activebackground="#1E90FF",activeforeground="white")
         self.graph_info.pack(side="right", padx=5)  # Increased padding on the right side
         self.graph_info.bind("<Map>", lambda e: e.widget.config(relief="flat"))
