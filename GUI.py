@@ -9,6 +9,7 @@ import scipy.stats as stats
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 import pyfiglet
 
+
 class CSVPlotterApp:
     def __init__(self, root):
         self.root = root
@@ -56,7 +57,7 @@ class CSVPlotterApp:
         # Title label
         ascii_art = pyfiglet.figlet_format("figStat", font="doom").strip("\n")
         label = tk.Label(self.root, text=ascii_art, font=("Courier", 10), bg="#f0f0f0", fg="black", justify="left")
-        #label = tk.Label(self.root, text="FigStat", font=("Helvetica", 18, "bold"), bg="#f0f0f0", fg="black")
+        # label = tk.Label(self.root, text="FigStat", font=("Helvetica", 18, "bold"), bg="#f0f0f0", fg="black")
         label.pack(pady=(30, 10))
 
         # Horizontal line divider
@@ -244,9 +245,10 @@ class CSVPlotterApp:
         button_row = tk.Frame(controls_frame, bg="#f0f0f0")
         button_row.grid(row=3, column=0, columnspan=1, pady=5, sticky="e")
 
-        self.graph_info = tk.Button(button_row, text="i", font=("Arial", 12, "bold"), state="normal", width=2, height = 1,
-                                    command=self.graph_info, bg = "#1E90FF", fg = "black", relief = "flat", bd=0, highlightthickness=0,padx=0,pady=0)
-        self.graph_info.config(highlightbackground="#1E90FF",activebackground="#1E90FF",activeforeground="white")
+        self.graph_info = tk.Button(button_row, text="i", font=("Arial", 12, "bold"), state="normal", width=2, height=1,
+                                    command=self.graph_info, bg="#1E90FF", fg="black", relief="flat", bd=0,
+                                    highlightthickness=0, padx=0, pady=0)
+        self.graph_info.config(highlightbackground="#1E90FF", activebackground="#1E90FF", activeforeground="white")
         self.graph_info.pack(side="right", padx=5)  # Increased padding on the right side
         self.graph_info.bind("<Map>", lambda e: e.widget.config(relief="flat"))
 
@@ -465,7 +467,8 @@ class CSVPlotterApp:
             result_str = f"ANOVA p-value: {p_value_anova:.4e}\n\nTukey HSD Summary:\n{tukey.summary().as_text()}"
             messagebox.showinfo("Statistical Results", result_str)
 
-        elif (plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.numeric_columns and col2 in self.numeric_columns and not col3:
+        elif (
+                plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.numeric_columns and col2 in self.numeric_columns and not col3:
             try:
                 # Perform one-sample t-tests
                 t_stat1, p_value1 = stats.ttest_1samp(self.df[col1].dropna(), self.plotter.t1_ref1)
@@ -491,7 +494,8 @@ class CSVPlotterApp:
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to perform t-tests: {str(e)}")
 
-        elif (plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.categorical_columns and col2 in self.numeric_columns and not col3:
+        elif (
+                plot_type == "Bar" or plot_type == "Violin Plot") and col1 in self.categorical_columns and col2 in self.numeric_columns and not col3:
 
             if len(self.df[col1].unique()) == 2:
                 try:
@@ -662,7 +666,8 @@ class CSVPlotterApp:
         adv_window.title("Advanced Settings")
         adv_window.configure(bg="#f0f0f0")
 
-        label = tk.Label(adv_window, text="       Advanced Settings       ", font=("Arial", 16), bg="#f0f0f0", fg="black")
+        label = tk.Label(adv_window, text="       Advanced Settings       ", font=("Arial", 16), bg="#f0f0f0",
+                         fg="black")
         label.pack(pady=10)
 
         col1 = self.column1_combo.get()
@@ -733,12 +738,29 @@ class CSVPlotterApp:
 
         # Advanced settings for Heat Map
         elif self.plot_type_combo.get() == "Heat Map":
-            heatmap_label = tk.Label(adv_window, text="Heat Map Variables", font=("Arial", 12), bg="#f0f0f0", fg="black")
+            heatmap_label = tk.Label(adv_window, text="Heat Map Variables", font=("Arial", 12), bg="#f0f0f0",
+                                     fg="black")
             heatmap_label.pack(pady=10)
 
-            # Frame to hold toggles
-            toggle_frame = tk.Frame(adv_window, bg="#f0f0f0")
-            toggle_frame.pack(fill="both", expand=True, padx=10, pady=10)
+            # Create a Frame for the scrollable area
+            scrollable_frame = tk.Frame(adv_window, bg="#f0f0f0")
+            scrollable_frame.pack(fill="both", expand=True)
+
+            # Create a Canvas widget
+            canvas = tk.Canvas(scrollable_frame, bg="#f0f0f0", highlightthickness=0)
+            canvas.pack(side="left", fill="both", expand=True)
+
+            # Add a Scrollbar to the Canvas
+            scrollbar = tk.Scrollbar(scrollable_frame, orient="vertical", command=canvas.yview)
+            scrollbar.pack(side="right", fill="y")
+
+            # Configure the Canvas to work with the Scrollbar
+            canvas.configure(yscrollcommand=scrollbar.set)
+            canvas.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
+            # Create a Frame inside the Canvas for the toggles
+            toggle_frame = tk.Frame(canvas, bg="#f0f0f0")
+            canvas.create_window((0, 0), window=toggle_frame, anchor="nw")
 
             # Create a dictionary to hold variable toggles
             self.heatmap_variable_toggles = {}
@@ -760,9 +782,6 @@ class CSVPlotterApp:
             )
             save_button.pack(pady=(20, 10))
 
-
-        
-        
         # advanced menu for bar plot with 1 categorical and 1 numerical variables
         elif self.plot_type_combo.get() == "Bar" and col1 in self.categorical_columns and col2 in self.numeric_columns:
             Line_label = tk.Label(adv_window, text="Bar Graph", font=("Arial", 12), bg="#f0f0f0", fg="black")
@@ -848,7 +867,8 @@ class CSVPlotterApp:
             Bar_label.pack(pady=0)
             # check box for anova
             anova_bool = tk.BooleanVar(value=self.plotter.anova_bool)
-            anova_bool_checkbox = tk.Checkbutton(adv_window, text="ANOVA test", variable=anova_bool, font=("Arial", 12), bg="#f0f0f0", fg="black")
+            anova_bool_checkbox = tk.Checkbutton(adv_window, text="ANOVA test", variable=anova_bool, font=("Arial", 12),
+                                                 bg="#f0f0f0", fg="black")
             anova_bool_checkbox.pack(pady=10)
 
             save_button = tk.Button(
@@ -923,7 +943,6 @@ class CSVPlotterApp:
             r2_checkbox = tk.Checkbutton(adv_window, text="Show R² (Coefficient of Determination)", variable=r2_var,
                                          font=("Arial", 12), bg="#f0f0f0", fg="black", state="normal")
             r2_checkbox.pack(pady=10, padx=20, anchor="w")
-
 
             def save_scatter_settings():
                 self.plotter.show_best_fit = best_fit_var.get()
@@ -1301,11 +1320,11 @@ class CSVPlotterApp:
             info_text = (
                 "Scatter Plot Info:\n\n"
                 "- A scatter plot is used to show relationships between two numerical variables.\n"
-                "- A third numerical variabled can be added as a second y-axis.\n"
+                "- A third numerical variable can be added as a second y-axis.\n"
                 "- The R^2 value, line of best fit, and confidence interval can be configured in advanced settings.\n\n"
                 "- X-axis: Numerical variable.\n"
                 "- Y-axis: Numerical variable.\n\n"
-                "- Example: Age vs. Income."
+                "- Example: Heart Rate vs Age of Patients."
             )
         elif plot_type == "Line":
             info_text = (
@@ -1313,7 +1332,7 @@ class CSVPlotterApp:
                 "- A line graph is used to show trends over time or continuous data.\n\n"
                 "- X-axis: Numerical variable (e.g., time).\n"
                 "- Y-axis: Numerical variable.\n\n"
-                "- Example: Stock prices over time."
+                "- Example: Wound Healing Rate vs Days After Surgery."
             )
         elif plot_type == "Pie Chart":
             info_text = (
@@ -1321,14 +1340,14 @@ class CSVPlotterApp:
                 "- A pie chart is used to show proportions of categories.\n\n"
                 "- Only one categorical variable input is required.\n"
                 "- Labels for percentage, count, or both can be found in advanced settings.\n\n"
-                "- Example: Gender proportions."
+                "- Example: Proportion of Blood Types in a Donor Population."
             )
         elif plot_type == "Heat Map":
             info_text = (
                 "Heat Map Info:\n\n"
                 "- A heat map is used to visualize data in a matrix format with color coding.\n"
                 "- The heatmap automatically plots all numerical variables against each other.\n\n"
-                "- Example: Correlation matrix."
+                "- Example: Gene Expression Levels in Different Patient Samples."
             )
         elif plot_type == "Violin Plot":
             info_text = (
@@ -1348,7 +1367,7 @@ class CSVPlotterApp:
                 "- A box plot is used to show the distribution of numerical data.\n\n"
                 "- X-axis: Categorical variable.\n"
                 "- Y-axis: Numerical variable.\n\n"
-                "- Example: Salary distribution by department."
+                "- Example: Tumor Size Distribution by Cancer Type."
             )
         elif plot_type == "Histogram":
             info_text = (
@@ -1369,6 +1388,7 @@ class CSVPlotterApp:
 
         # Display the information in a message box
         messagebox.showinfo("Graph Info", info_text)
+
     def save_heatmap_settings(self, window):
         # Collect selected variables
         selected_variables = [var for var, toggle in self.heatmap_variable_toggles.items() if toggle.get()]
