@@ -32,7 +32,6 @@ class PlotManager:
         self.show_equation = False
         self.show_r = False
         self.show_r2 = False
-        self.show_legend = False
 
         # box
         self.show_outliers = True
@@ -287,8 +286,9 @@ class PlotManager:
             handles1, labels1 = ax1.get_legend_handles_labels()
             handles2, labels2 = ax2.get_legend_handles_labels()
             ax2.legend(handles=handles1 + handles2, labels=labels1 + labels2, loc="upper right")
+            ax1.legend().remove()
         else:
-            plt.gca().legend().remove()
+            ax1.legend().remove()
 
             # Only add best-fit line, equation, and R/R² if col3 is NOT provided
             if self.show_best_fit:
