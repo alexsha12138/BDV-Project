@@ -115,8 +115,9 @@ class PlotManager:
             y_label = ylabel if ylabel else col2
 
             plt.title(plot_title, fontsize=title_font)
-            if x_label: plt.xlabel(x_label, fontsize=text_font)
-            if y_label: plt.ylabel(y_label, fontsize=text_font)
+            if not (plot_type == "Scatter" and col3 and pd.api.types.is_numeric_dtype(df[col3])):
+                if x_label: plt.xlabel(x_label, fontsize=text_font)
+                if y_label: plt.ylabel(y_label, fontsize=text_font)
 
             plt.xticks(rotation=0)
             plt.tight_layout()
@@ -279,7 +280,9 @@ class PlotManager:
             ax2 = ax1.twinx()  # Create a secondary y-axis
             sns.scatterplot(data=df, x=col1, y=col3, color="tab:orange", label=col3, ax=ax2)
 
-            # Set labels for the secondary y-axis
+            # Set labels for the secondary y-axis and primary y-axis
+            ax1.set_ylabel(col2, color="tab:blue")
+            ax1.tick_params(axis="y", labelcolor="tab:blue")
             ax2.set_ylabel(col3, color="tab:orange")
             ax2.tick_params(axis="y", labelcolor="tab:orange")
 
@@ -321,10 +324,8 @@ class PlotManager:
                         s=f"R² = {r_squared:.2f}", color="red", fontsize=10,
                         bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
 
-        # Set labels for the primary y-axis and x-axis (always do this)
+        # Set labels for the x-axis (always do this)
         plt.xlabel(col1)
-        plt.ylabel(col2, color="tab:blue")
-        plt.tick_params(axis="y", labelcolor="tab:blue")
 
     def plot_line(self, df, col1, col2):
         """
