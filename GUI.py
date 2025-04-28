@@ -826,7 +826,7 @@ class CSVPlotterApp:
             t1_marker_checkbox.pack(pady=10)
 
             # reference values for 1 sample t-test
-            t1_col1_ref_lab = tk.Label(adv_window, text="Variable 1 reference value:", font=("Arial", 12), bg="#f0f0f0",
+            t1_col1_ref_lab = tk.Label(adv_window, text="Variable 1 population mean:", font=("Arial", 12), bg="#f0f0f0",
                                        fg="black")
             t1_col1_ref_lab.pack(pady=0)
             t1_col1_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1,
@@ -834,7 +834,7 @@ class CSVPlotterApp:
             t1_col1_ref_entry.pack(pady=10)
             t1_col1_ref_entry.insert(0, str(self.plotter.t1_ref1))
 
-            t1_col2_ref_lab = tk.Label(adv_window, text="Variable 2 reference value:", font=("Arial", 12), bg="#f0f0f0",
+            t1_col2_ref_lab = tk.Label(adv_window, text="Variable 2 population mean:", font=("Arial", 12), bg="#f0f0f0",
                                        fg="black")
             t1_col2_ref_lab.pack(pady=0)
             t1_col2_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1,
@@ -1143,7 +1143,7 @@ class CSVPlotterApp:
                     t1_marker_checkbox.pack(pady=10)
 
                     # reference values for 1 sample t-test
-                    t1_col1_ref_lab = tk.Label(adv_window, text="Variable 1 reference value:", font=("Arial", 12),
+                    t1_col1_ref_lab = tk.Label(adv_window, text="Variable 1 population mean:", font=("Arial", 12),
                                                bg="#f0f0f0", fg="black")
                     t1_col1_ref_lab.pack(pady=0)
                     t1_col1_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1,
@@ -1151,7 +1151,7 @@ class CSVPlotterApp:
                     t1_col1_ref_entry.pack(pady=10)
                     t1_col1_ref_entry.insert(0, str(self.plotter.t1_ref1))
 
-                    t1_col2_ref_lab = tk.Label(adv_window, text="Variable 2 reference value:", font=("Arial", 12),
+                    t1_col2_ref_lab = tk.Label(adv_window, text="Variable 2 population mean:", font=("Arial", 12),
                                                bg="#f0f0f0", fg="black")
                     t1_col2_ref_lab.pack(pady=0)
                     t1_col2_ref_entry = tk.Entry(adv_window, font=("Arial", 12), width=10, bg="white", fg="black", bd=1,

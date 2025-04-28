@@ -1,5 +1,0 @@
-import matplotlib.pyplot as plt
-import seaborn as sns
-import scipy.stats as stats
-import pandas as pd
-from tkinter import messagebox
