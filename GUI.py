@@ -950,7 +950,6 @@ class CSVPlotterApp:
                 self.plotter.show_equation = equation_var.get()
                 self.plotter.show_r = r_var.get()
                 self.plotter.show_r2 = r2_var.get()
-                self.plotter.show_legend = legend_var.get()
                 adv_window.destroy()
 
             save_button = tk.Button(adv_window, text="Save", font=("Arial", 12), command=save_scatter_settings)
