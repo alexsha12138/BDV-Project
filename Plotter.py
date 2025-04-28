@@ -288,11 +288,7 @@ class PlotManager:
             handles2, labels2 = ax2.get_legend_handles_labels()
             ax2.legend(handles=handles1 + handles2, labels=labels1 + labels2, loc="upper right")
         else:
-            # Add legend for a single y-variable
-            if self.show_legend:
-                plt.legend(loc="upper right")
-            else:
-                plt.gca().legend().remove()
+            plt.gca().legend().remove()
 
             # Only add best-fit line, equation, and R/R² if col3 is NOT provided
             if self.show_best_fit:
@@ -353,7 +349,6 @@ class PlotManager:
                         markerfacecolor=self.marker_color if self.show_markers else None,  # Marker color
                         label=column
                     )
-            plt.legend()
         else:
             plt.plot(
                 sorted_df[col1],

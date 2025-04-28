@@ -924,11 +924,6 @@ class CSVPlotterApp:
                                          font=("Arial", 12), bg="#f0f0f0", fg="black", state="normal")
             r2_checkbox.pack(pady=10, padx=20, anchor="w")
 
-            # Toggle Legend
-            legend_var = tk.BooleanVar(value=self.plotter.show_legend)  # Default value for legend visibility
-            legend_checkbox = tk.Checkbutton(adv_window, text="Toggle Legend", variable=legend_var, font=("Arial", 12),
-                                             bg="#f0f0f0", fg="black")
-            legend_checkbox.pack(pady=10, padx=20, anchor="w")
 
             def save_scatter_settings():
                 self.plotter.show_best_fit = best_fit_var.get()
