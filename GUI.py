@@ -1358,7 +1358,7 @@ class CSVPlotterApp:
         elif plot_type == "Violin Plot":
             info_text = (
                 "Violin Plot Info:\n\n"
-                "- A violin plot is used to shop the distribution of a data set and compare categories of data.\n"
+                "- A violin plot is used to show the distribution of data and compare categories of data.\n"
                 "- The violin plot is configured to plot the following:\n"
                 "     - 2 or 3 numerical variables, each as its own category\n"
                 "     - 1 categorical variable and 1 numerical variable\n"
