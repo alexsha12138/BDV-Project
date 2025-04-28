@@ -272,6 +272,7 @@ class PlotManager:
         def on_add(sel):
             x, y = sel.target
             sel.annotation.set_text(f"{col1}: {x:.2f}\n{col2}: {y:.2f}")
+
         # Create a secondary y-axis if col3 is provided
         if col3:
             ax1 = plt.gca()  # Get the current axes for the primary y-axis
@@ -283,49 +284,50 @@ class PlotManager:
             ax2.tick_params(axis="y", labelcolor="tab:orange")
 
             # Combine legends from both axes
-            handles1, labels1 = ax1.get_legend_handles_labels()  # Get legend handles and labels from ax1
-            handles2, labels2 = ax2.get_legend_handles_labels()  # Get legend handles and labels from ax2
-            ax2.legend(handles=handles1 + handles2, labels=labels1 + labels2, loc="upper right")  # Combine legends
+            handles1, labels1 = ax1.get_legend_handles_labels()
+            handles2, labels2 = ax2.get_legend_handles_labels()
+            ax2.legend(handles=handles1 + handles2, labels=labels1 + labels2, loc="upper right")
         else:
             # Add legend for a single y-variable
             if self.show_legend:
-                plt.legend(loc="upper right")  # Show the legend
+                plt.legend(loc="upper right")
             else:
-                plt.gca().legend().remove()  # Hide the legend
+                plt.gca().legend().remove()
 
-        # Set labels for the primary y-axis and x-axis
+            # Only add best-fit line, equation, and R/R² if col3 is NOT provided
+            if self.show_best_fit:
+                self.line_equation = f"y = {slope:.2f}x + {intercept:.2f}"  # Store the equation
+                sns.regplot(x=col1, y=col2, data=df, ci=95 if self.show_confidence_interval else None, scatter=False,
+                            line_kws={"color": "red"})
+
+            x_pos = df[col1].min() + (df[col1].max() - df[col1].min()) * 0.02  # Slightly offset from the left
+            y_pos = df[col2].max() - (df[col2].max() - df[col2].min()) * 0.02
+
+            if self.show_equation and hasattr(self, "line_equation"):
+                plt.text(
+                    x=x_pos,
+                    y=y_pos,
+                    s=self.line_equation,
+                    color="red",
+                    fontsize=10,
+                    bbox=dict(facecolor="white", alpha=0.5, edgecolor="none")
+                )
+
+            if self.show_r:
+                plt.text(x=x_pos, y=y_pos - (df[col2].max() - df[col2].min()) * 0.05,
+                        s=f"R = {r_value:.2f}", color="red", fontsize=10,
+                        bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
+
+            if self.show_r2:
+                r_squared = r_value ** 2
+                plt.text(x=x_pos, y=y_pos - (df[col2].max() - df[col2].min()) * 0.1,
+                        s=f"R² = {r_squared:.2f}", color="red", fontsize=10,
+                        bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
+
+        # Set labels for the primary y-axis and x-axis (always do this)
         plt.xlabel(col1)
         plt.ylabel(col2, color="tab:blue")
         plt.tick_params(axis="y", labelcolor="tab:blue")
-
-        if self.show_best_fit:
-            self.line_equation = f"y = {slope:.2f}x + {intercept:.2f}"  # Store the equation
-            sns.regplot(x=col1, y=col2, data=df, ci=95 if self.show_confidence_interval else None, scatter=False,
-                        line_kws={"color": "red"})
-
-        x_pos = df[col1].min() + (df[col1].max() - df[col1].min()) * 0.02  # Slightly offset from the left
-        y_pos = df[col2].max() - (df[col2].max() - df[col2].min()) * 0.02
-
-        if self.show_equation and hasattr(self, "line_equation"):
-            plt.text(
-                x=x_pos,
-                y=y_pos,
-                s=self.line_equation,
-                color="red",
-                fontsize=10,
-                bbox=dict(facecolor="white", alpha=0.5, edgecolor="none")
-            )
-
-        if self.show_r:
-            plt.text(x=x_pos, y=y_pos - (df[col2].max() - df[col2].min()) * 0.05,
-                     s=f"R = {r_value:.2f}", color="red", fontsize=10,
-                     bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
-
-        if self.show_r2:
-            r_squared = r_value ** 2
-            plt.text(x=x_pos, y=y_pos - (df[col2].max() - df[col2].min()) * 0.1,
-                     s=f"R² = {r_squared:.2f}", color="red", fontsize=10,
-                     bbox=dict(facecolor="white", alpha=0.5, edgecolor="none"))
 
     def plot_line(self, df, col1, col2):
         """
