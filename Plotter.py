@@ -263,6 +263,7 @@ class PlotManager:
 
     def plot_scatter(self, df, col1, col2, col3=None):
         # Plot col2 on the primary y-axis using Seaborn
+        ax1 = plt.gca()
         sns.scatterplot(data=df, x=col1, y=col2, color="tab:blue", label=col2)
         slope, intercept, r_value, p_value, std_err = linregress(df[col1], df[col2])
         cursor = mplcursors.cursor(hover=True)
