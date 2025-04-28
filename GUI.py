@@ -1046,28 +1046,49 @@ class CSVPlotterApp:
             )
             save_button.pack(pady=(20, 10))
 
+        # Advanced settings for Pairplot
         elif self.plot_type_combo.get() == "Pairplot":
+            pairplot_label = tk.Label(adv_window, text="Pairplot Variables", font=("Arial", 12), bg="#f0f0f0",
+                                      fg="black")
+            pairplot_label.pack(pady=10)
 
-            # Instruction label
-            instruction_label = tk.Label(
-                adv_window,
-                text="Enter variable names separated by commas:", font=("Arial", 12), bg="#f0f0f0", fg="black")
-            instruction_label.pack(pady=(10, 5))
+            # Create a Frame for the scrollable area
+            scrollable_frame = tk.Frame(adv_window, bg="#f0f0f0")
+            scrollable_frame.pack(fill="both", expand=True)
 
-            # Text box for user input
-            pairplot_entry = tk.Entry(adv_window, font=("Arial", 12), width=30, bg="white", fg="black", bd=1,
-                                      highlightthickness=0)
+            # Create a Canvas widget
+            canvas = tk.Canvas(scrollable_frame, bg="#f0f0f0", highlightthickness=0)
+            canvas.pack(side="left", fill="both", expand=True)
 
-            # Pre-fill the text box with the previously saved value (if any)
-            if hasattr(self.plotter, 'pairplot_variables') and self.plotter.pairplot_variables:
-                pairplot_entry.insert(0, self.plotter.pairplot_variables)
+            # Add a Scrollbar to the Canvas
+            scrollbar = tk.Scrollbar(scrollable_frame, orient="vertical", command=canvas.yview)
+            scrollbar.pack(side="right", fill="y")
 
-            pairplot_entry.pack(pady=(10, 20), padx=30)
+            # Configure the Canvas to work with the Scrollbar
+            canvas.configure(yscrollcommand=scrollbar.set)
+            canvas.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
+            # Create a Frame inside the Canvas for the toggles
+            toggle_frame = tk.Frame(canvas, bg="#f0f0f0")
+            canvas.create_window((0, 0), window=toggle_frame, anchor="nw")
+
+            # Create a dictionary to hold variable toggles
+            self.pairplot_variable_toggles = {}
+
+            # Generate checkbuttons for each variable
+            for variable in self.columns:
+                var_toggle = tk.BooleanVar(value=True)  # Default to selected
+                toggle = tk.Checkbutton(toggle_frame, text=variable, variable=var_toggle, font=("Arial", 12),
+                                        bg="#f0f0f0", fg="black", anchor="w")
+                toggle.pack(fill="x", anchor="w", padx=5, pady=2)
+                self.pairplot_variable_toggles[variable] = var_toggle
 
             # Save button
             def save_pairplot_settings():
-                # Save the user input to the plotter object
-                self.plotter.pairplot_variables = pairplot_entry.get()
+                # Collect selected variables
+                selected_variables = [var for var, toggle in self.pairplot_variable_toggles.items() if toggle.get()]
+                # Save them as a comma-separated string in the plotter
+                self.plotter.pairplot_variables = ", ".join(selected_variables)
                 adv_window.destroy()  # Close the advanced settings window
 
             save_button = tk.Button(
