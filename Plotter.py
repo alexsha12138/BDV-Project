@@ -58,6 +58,8 @@ class PlotManager:
         dpi = 100
         width = xres / dpi
         height = yres / dpi
+        self.text_font = text_font
+        self.title_font = title_font
         if plot_type != "Heat Map":
             fig, ax = plt.subplots(figsize=(width, height), dpi=dpi)
 
@@ -235,6 +237,8 @@ class PlotManager:
 
         # Plot the bar chart
         sns.barplot(x=titles, y=[var1.mean(), var2.mean()], hue=titles, palette=["lightcoral", "skyblue"])
+        plt.xticks(fontsize=self.text_font)
+        plt.yticks(fontsize=self.text_font)
 
         # Add horizontal guidelines based on y-axis tick marks
         y_ticks = plt.gca().get_yticks()
