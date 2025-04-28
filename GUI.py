@@ -1358,14 +1358,14 @@ class CSVPlotterApp:
         elif plot_type == "Violin Plot":
             info_text = (
                 "Violin Plot Info:\n\n"
-                "- A violin plot is used to compare categories of data.\n"
+                "- A violin plot is used to shop the distribution of a data set and compare categories of data.\n"
                 "- The violin plot is configured to plot the following:\n"
                 "     - 2 or 3 numerical variables, each as its own category\n"
                 "     - 1 categorical variable and 1 numerical variable\n"
                 "- T-test and ANOVA options are available in advanced settings.\n\n"
                 "- X-axis: Categories.\n"
-                "- Y-axis: Average value.\n\n"
-                "- Example: Recovery rate by Treatment Type."
+                "- Y-axis: Values.\n\n"
+                "- Example: Heart Rates before and after exercise."
             )
         elif plot_type == "Box Plot":
             info_text = (
